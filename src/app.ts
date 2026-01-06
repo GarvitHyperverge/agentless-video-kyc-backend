@@ -11,8 +11,8 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// Middleware to parse JSON bodies
-app.use(express.json());
+// Middleware to parse JSON bodies (increased limit for base64 images)
+app.use(express.json({ limit: '50mb' }));
 
 // Routes
 app.get('/', (req: Request, res: Response) => {
