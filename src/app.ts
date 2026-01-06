@@ -1,7 +1,15 @@
 import express, { Request, Response } from 'express';
+import cors from 'cors';
 import routes from './routes';
 
 const app = express();
+
+// Enable CORS for all origins
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
 // Middleware to parse JSON bodies
 app.use(express.json());
