@@ -1,6 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import { verifyIdCard } from './idCardValidation.service';
+import { createCardIdValidation } from '../repositories/cardIdValidation.repository';
+import { getBusinessPartnerPanDataBySessionUid } from '../repositories/businessPartnerPanData.repository';
+import { compareAllFields } from './fieldMatch.service';
 import { PanCardUploadResponseDto } from '../dtos/panCard.dto';
 
 const ASSETS_DIR = path.join(__dirname, '../../assets');
@@ -37,9 +40,42 @@ export const uploadPanCardImages = async (
     expectedDocumentSide: 'front',
   });
 
+  // Save extracted data to database
+  await createCardIdValidation({
+    session_uid: sessionId,
+    id_number: frontVerification.idNumber,
+    full_name: frontVerification.fullName,
+    date_of_birth: frontVerification.dateOfBirth,
+    father_name: frontVerification.fatherName,
+  });
+
+  // Get business partner data for comparison
+  const businessPartnerData = await getBusinessPartnerPanDataBySessionUid(sessionId);
+
+  if (!businessPartnerData) {
+    throw new Error('Business partner PAN data not found for this session');
+  }
+
+  // Compare fields using HyperVerge matchFields API
+  const comparisonResult = await compareAllFields(
+    sessionId,
+    {
+      fullName: frontVerification.fullName,
+      dateOfBirth: frontVerification.dateOfBirth,
+      fatherName: frontVerification.fatherName,
+      idNumber: frontVerification.idNumber,
+    },
+    {
+      full_name: businessPartnerData.full_name,
+      date_of_birth: businessPartnerData.date_of_birth,
+      father_name: businessPartnerData.father_name,
+      pan_number: businessPartnerData.pan_number,
+    }
+  );
+
   return {
     sessionId,
-    frontImagePath,
     frontVerification,
+    verificationStatus: comparisonResult.allMatched,
   };
 };

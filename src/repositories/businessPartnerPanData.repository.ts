@@ -49,3 +49,27 @@ export const createBusinessPartnerPanData = async (
   
   return panData;
 };
+
+/**
+ * Get business partner PAN data by session_uid
+ */
+export const getBusinessPartnerPanDataBySessionUid = async (
+  sessionUid: string
+): Promise<BusinessPartnerPanData | null> => {
+  const [panData] = await sql<BusinessPartnerPanData[]>`
+    SELECT 
+      id,
+      session_uid,
+      pan_number,
+      full_name,
+      father_name,
+      date_of_birth,
+      source_party,
+      received_at,
+      created_at
+    FROM business_partner_pan_data
+    WHERE session_uid = ${sessionUid}
+  `;
+  
+  return panData || null;
+};

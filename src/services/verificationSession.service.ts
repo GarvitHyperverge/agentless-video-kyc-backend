@@ -44,7 +44,7 @@ export const createVerificationSession = async (dto: CreateVerificationSessionRe
         ${dto.pan_number},
         ${dto.full_name},
         ${dto.father_name},
-        ${dto.date_of_birth}::date,
+        ${dto.date_of_birth},
         ${dto.source_party}
       )
     `;

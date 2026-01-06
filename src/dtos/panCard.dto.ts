@@ -1,4 +1,4 @@
-import { PanCardExtractedData } from "../services/idCardValidation.service";
+import { PanCardExtractedData } from "../types/idCardValidation.types";
 
 // Request DTO
 export interface PanCardUploadRequestDto {
@@ -9,6 +9,6 @@ export interface PanCardUploadRequestDto {
 // Response DTO
 export interface PanCardUploadResponseDto {
   sessionId: string;
-  frontImagePath: string;
   frontVerification: PanCardExtractedData;
+  verificationStatus: boolean;
 }
