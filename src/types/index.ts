@@ -1,1 +1,1 @@
-// Type definitions will go here
+export * from './verificationSession.types';

@@ -11,6 +11,6 @@ app.get('/', (req: Request, res: Response) => {
   res.json({ message: 'Welcome to the Video KYC Backend API' });
 });
 
-app.use(routes);
+app.use('/api', routes);
 
 export default app;
