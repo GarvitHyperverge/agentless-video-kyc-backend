@@ -1,6 +1,11 @@
 // Request DTO
 export interface CreateVerificationSessionRequestDto {
   external_txn_id: string;
+  pan_number: string;
+  full_name: string;
+  father_name: string;
+  date_of_birth: string; 
+  source_party: string;
 }
 
 // Response DTO
