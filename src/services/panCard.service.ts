@@ -6,7 +6,12 @@ import { getBusinessPartnerPanDataBySessionUid } from '../repositories/businessP
 import { compareAllFields } from './fieldMatch.service';
 import { PanCardUploadResponseDto } from '../dtos/panCard.dto';
 
-const ASSETS_DIR = path.join(__dirname, '../../assets');
+const PAN_DIR = path.join(__dirname, '../../assets/pan');
+
+// Ensure directory exists
+if (!fs.existsSync(PAN_DIR)) {
+  fs.mkdirSync(PAN_DIR, { recursive: true });
+}
 
 /**
  * Save base64 image to file
@@ -14,22 +19,29 @@ const ASSETS_DIR = path.join(__dirname, '../../assets');
 const saveBase64Image = (base64Data: string, filename: string): string => {
   const base64Image = base64Data.replace(/^data:image\/\w+;base64,/, '');
   const buffer = Buffer.from(base64Image, 'base64');
-  const filePath = path.join(ASSETS_DIR, filename);
+  const filePath = path.join(PAN_DIR, filename);
   fs.writeFileSync(filePath, buffer);
   return filePath;
 };
 
 /**
- * Upload and verify PAN card front image
+ * Upload and verify PAN card front and back images
  */
 export const uploadPanCardImages = async (
   sessionId: string,
-  frontImage: string
+  frontImage: string,
+  backImage: string
 ): Promise<PanCardUploadResponseDto> => {
   const frontFilename = `${sessionId}_pan_front.png`;
 
-  // Save image to assets folder
+  // Save front image to assets folder
   const frontImagePath = saveBase64Image(frontImage, frontFilename);
+
+  // Save back image if provided
+  if (backImage) {
+    const backFilename = `${sessionId}_pan_back.png`;
+    saveBase64Image(backImage, backFilename);
+  }
 
   // Verify front image with HyperVerge API
   const frontVerification = await verifyIdCard({

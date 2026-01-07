@@ -1,10 +1,13 @@
 import fs from 'fs';
 import path from 'path';
 import { checkLiveness } from './livenessCheck.service';
+import { matchFace } from './faceMatch.service';
 import { createSelfieValidation } from '../repositories/selfieValidation.repository';
+import { createFaceMatchResult } from '../repositories/faceMatchResult.repository';
 import { SelfieUploadResponseDto } from '../dtos/selfie.dto';
 
 const SELFIE_DIR = path.join(__dirname, '../../assets/selfie');
+const PAN_DIR = path.join(__dirname, '../../assets/pan');
 
 // Ensure directory exists
 if (!fs.existsSync(SELFIE_DIR)) {
@@ -46,9 +49,29 @@ export const uploadSelfie = async (
     action: livenessResult.action,
   });
 
+  // Match face with PAN card
+  const panCardImagePath = path.join(PAN_DIR, `${sessionId}_pan_front.png`);
+  
+  // Check if PAN card image exists
+  if (!fs.existsSync(panCardImagePath)) {
+    throw new Error('PAN card image not found for this session');
+  }
+
+  // Match selfie with PAN card face
+  const faceMatchResult = await matchFace(selfiePath, panCardImagePath, `${sessionId}_faceMatch`);
+
+  // Save face match result to database
+  await createFaceMatchResult({
+    session_uid: sessionId,
+    match_value: faceMatchResult.match ? 'yes' : 'no',
+    match_confidence: faceMatchResult.confidence,
+    action: faceMatchResult.action,
+  });
+
   return {
     sessionId,
     selfiePath,
     isLive: livenessResult.isLive,
+    faceMatch: faceMatchResult.match,
   };
 };

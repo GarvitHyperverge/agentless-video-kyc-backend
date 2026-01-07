@@ -9,7 +9,7 @@ import { PanCardUploadRequestDto, PanCardUploadResponseDto } from '../dtos/panCa
  */
 export const uploadPanCardImages = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { session_id, front_image }: PanCardUploadRequestDto = req.body;
+    const { session_id, front_image, back_image }: PanCardUploadRequestDto = req.body;
 
     if (!session_id || !front_image) {
       const response: ApiResponseDto<never> = {
@@ -20,7 +20,7 @@ export const uploadPanCardImages = async (req: Request, res: Response): Promise<
       return;
     }
 
-    const result = await uploadPanCardImagesService(session_id, front_image);
+    const result = await uploadPanCardImagesService(session_id, front_image, back_image);
 
     const response: ApiResponseDto<PanCardUploadResponseDto> = {
       success: true,

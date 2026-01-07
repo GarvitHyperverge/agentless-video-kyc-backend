@@ -4,6 +4,7 @@ import { PanCardExtractedData } from "../types/idCardValidation.types";
 export interface PanCardUploadRequestDto {
   session_id: string;
   front_image: string;
+  back_image: string;
 }
 
 // Response DTO

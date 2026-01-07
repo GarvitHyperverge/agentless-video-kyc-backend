@@ -9,4 +9,5 @@ export interface SelfieUploadResponseDto {
   sessionId: string;
   selfiePath: string;
   isLive: boolean;
+  faceMatch: boolean;
 }

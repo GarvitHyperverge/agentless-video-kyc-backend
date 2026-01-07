@@ -21,6 +21,21 @@ export const uploadSelfie = async (req: Request, res: Response): Promise<void> =
 
     const result = await uploadSelfieService(session_id, image);
 
+    // Check if liveness and face match both passed
+    if (!result.isLive || !result.faceMatch) {
+      const errors: string[] = [];
+      if (!result.isLive) errors.push('Liveness check failed');
+      if (!result.faceMatch) errors.push('Face match failed');
+      
+      const response: ApiResponseDto<SelfieUploadResponseDto> = {
+        success: false,
+        data: result,
+        error: errors.join(', '),
+      };
+      res.status(400).json(response);
+      return;
+    }
+
     const response: ApiResponseDto<SelfieUploadResponseDto> = {
       success: true,
       data: result,
