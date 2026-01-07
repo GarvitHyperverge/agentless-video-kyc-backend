@@ -23,8 +23,10 @@ export const matchFace = async (
     formData.append('selfie', fs.createReadStream(selfieImagePath));
     formData.append('id', fs.createReadStream(idCardImagePath));
 
+    const apiUrl = `${config.hyperverge.baseUrl}/v1/matchFace`;
+    console.log('[matchFace] API URL:', apiUrl);
     const response = await axios.post(
-      `${config.hyperverge.baseUrl}/matchFace`,
+      apiUrl,
       formData,
       {
         headers: {

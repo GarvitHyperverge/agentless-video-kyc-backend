@@ -22,8 +22,10 @@ export const checkLiveness = async (
     formData.append('image', fs.createReadStream(imagePath));
     formData.append('returnCroppedImageURL', 'yes');
 
+    const apiUrl = `${config.hyperverge.baseUrl}/v1/checkLiveness`;
+    console.log('[checkLiveness] API URL:', apiUrl);
     const response = await axios.post(
-      `${config.hyperverge.baseUrl}/checkLiveness`,
+      apiUrl,
       formData,
       {
         headers: {

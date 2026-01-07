@@ -62,6 +62,7 @@ export const uploadPanCardImages = async (
     throw new Error('Business partner PAN data not found for this session');
   }
 
+  console.log("I AM HERE")
   // Compare fields using HyperVerge matchFields API
   const comparisonResult = await compareAllFields(
     dto.session_id,

@@ -43,12 +43,14 @@ export const compareAllFields = async (
       },
     };
 
+    const apiUrl = "https://ind-verify.hyperverge.co/api/matchFields"    ;
+    console.log('[compareAllFields] API URL:', apiUrl);
     const response = await axios.post(
-      `${config.hyperverge.baseUrl}/matchFields`,
+      apiUrl,
       requestBody,
       {
         headers: {
-          contentType: 'application/json',
+          'Content-Type': 'application/json',
           appId: config.hyperverge.appId,
           appKey: config.hyperverge.appKey,
           transactionId: transactionId,
@@ -63,11 +65,11 @@ export const compareAllFields = async (
     const nameMatch = result?.name || false;
     const dobMatch = result?.dob || false;
     const idMatch = result?.pan_no || false;
-
+    
     // All fields must match
     const allMatched = nameMatch && dobMatch && idMatch;
-
-    return {
+    
+    const responseDto = {
       allMatched,
       results: {
         name: {
@@ -92,8 +94,8 @@ export const compareAllFields = async (
         },
       },
     };
+    return responseDto;
   } catch (error: any) {
-    console.error('Match Fields Error:', error.response?.data || error.message);
     throw error;
   }
 };

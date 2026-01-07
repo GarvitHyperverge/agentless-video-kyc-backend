@@ -28,8 +28,10 @@ export const verifyIdCard = async ({
     formData.append('documentId', documentId);
     formData.append('expectedDocumentSide', expectedDocumentSide);
 
+    const apiUrl = `${config.hyperverge.baseUrl}/v1/readId`;
+    console.log('[verifyIdCard] API URL:', apiUrl);
     const response = await axios.post(
-      `${config.hyperverge.baseUrl}/readId`,
+      apiUrl,
       formData,
       {
         headers: {

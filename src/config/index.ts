@@ -4,6 +4,6 @@ export const config = {
   hyperverge: {
     appId: process.env.APP_ID || '',
     appKey: process.env.APP_KEY || '',
-    baseUrl: process.env.HYPERVERGE_BASE_URL || 'https://ind.idv.hyperverge.co/v1',
+    baseUrl: process.env.HYPERVERGE_BASE_URL || 'https://ind-verify.hyperverge.co',
   },
 };
