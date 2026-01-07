@@ -1,6 +1,6 @@
 import sql from '../config/supabase';
-import { CardIdValidationModel } from '../models/cardIdValidation.model';
-import { CardIdValidation } from '../types/cardIdValidation.types';
+import { CardIdValidationModel } from '../models';
+import { CardIdValidation } from '../types';
 
 /**
  * Creates card ID validation data in the database

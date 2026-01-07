@@ -1,5 +1,5 @@
 import sql from '../config/supabase';
-import { SessionMetadataModel } from '../models/sessionMetadata.model';
+import { SessionMetadataModel } from '../models';
 import { SessionMetadata } from '../types';
 
 /**

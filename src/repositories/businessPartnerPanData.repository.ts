@@ -1,6 +1,6 @@
 import sql from '../config/supabase';
-import { BusinessPartnerPanDataModel } from '../models/businessPartnerPanData.model';
-import { BusinessPartnerPanData } from '../types/businessPartnerPanData.types';
+import { BusinessPartnerPanDataModel } from '../models';
+import { BusinessPartnerPanData } from '../types';
 
 /**
  * Creates business partner PAN data in the database

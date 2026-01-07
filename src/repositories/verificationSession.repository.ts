@@ -1,5 +1,5 @@
 import sql from '../config/supabase';
-import { VerificationSessionModel } from '../models/verificationSession.model';
+import { VerificationSessionModel } from '../models';
 import { VerificationSession } from '../types';
 
 /**

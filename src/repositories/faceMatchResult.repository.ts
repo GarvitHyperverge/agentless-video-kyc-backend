@@ -1,6 +1,6 @@
 import sql from '../config/supabase';
-import { FaceMatchResultModel } from '../models/faceMatchResult.model';
-import { FaceMatchResult } from '../types/faceMatchResult.types';
+import { FaceMatchResultModel } from '../models';
+import { FaceMatchResult } from '../types';
 
 /**
  * Creates face match result data in the database

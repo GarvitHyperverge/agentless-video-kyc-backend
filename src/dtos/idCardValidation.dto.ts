@@ -1,4 +1,4 @@
-import { DocumentSide, DocumentType } from "../types/idCardValidation.types";
+import { DocumentSide, DocumentType } from "../types";
 
 // Request DTO 
 export interface VerifyIdCardRequestDto {

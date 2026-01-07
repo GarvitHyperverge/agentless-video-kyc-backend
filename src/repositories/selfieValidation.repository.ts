@@ -1,6 +1,6 @@
 import sql from '../config/supabase';
-import { SelfieValidationModel } from '../models/selfieValidation.model';
-import { SelfieValidation } from '../types/selfieValidation.types';
+import { SelfieValidationModel } from '../models';
+import { SelfieValidation } from '../types';
 
 /**
  * Creates selfie validation data in the database
