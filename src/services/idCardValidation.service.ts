@@ -11,8 +11,6 @@ const httpsAgent = new https.Agent({
   rejectUnauthorized: false,
 });
 
-
-
 /**
  * Call HyperVerge API to verify an ID card image
  */

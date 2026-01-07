@@ -33,15 +33,11 @@ export const uploadPanCardImages = async (
   backImage: string
 ): Promise<PanCardUploadResponseDto> => {
   const frontFilename = `${sessionId}_pan_front.png`;
+  const backFilename = `${sessionId}_pan_back.png`;
 
-  // Save front image to assets folder
+  // Save front and back images to assets folder
   const frontImagePath = saveBase64Image(frontImage, frontFilename);
-
-  // Save back image if provided
-  if (backImage) {
-    const backFilename = `${sessionId}_pan_back.png`;
-    saveBase64Image(backImage, backFilename);
-  }
+  const backImagePath = saveBase64Image(backImage, backFilename);
 
   // Verify front image with HyperVerge API
   const frontVerification = await verifyIdCard({

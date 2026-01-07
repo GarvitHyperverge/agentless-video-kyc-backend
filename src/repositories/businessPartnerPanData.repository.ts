@@ -4,17 +4,14 @@ import { BusinessPartnerPanData } from '../types/businessPartnerPanData.types';
 
 /**
  * Creates business partner PAN data in the database
- * Uses RETURNING clause for atomic operation
- * 
- * @param data - Business partner PAN data (excludes auto-generated fields: id, created_at)
- * @returns Promise<BusinessPartnerPanData> - The created PAN data record
- * 
  * Note: id, and created_at are automatically set by the database
  */
 export const createBusinessPartnerPanData = async (
-  data: Omit<BusinessPartnerPanDataModel, 'id' | 'created_at'>
+  data: Omit<BusinessPartnerPanDataModel, 'id' | 'created_at'>,
+  tx?: typeof sql
 ): Promise<BusinessPartnerPanData> => {
-  const [panData] = await sql<BusinessPartnerPanData[]>`
+  const query = tx || sql;
+  const [panData] = await query<BusinessPartnerPanData[]>`
     INSERT INTO business_partner_pan_data (
       session_uid,
       pan_number,

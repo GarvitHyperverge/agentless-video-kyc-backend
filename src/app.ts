@@ -7,11 +7,9 @@ const app = express();
 // Enable CORS for all origins
 app.use(cors({
   origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// Middleware to parse JSON bodies (increased limit for base64 images and videos)
+// Middleware to parse JSON bodies 
 app.use(express.json({ limit: '300mb' }));
 
 // Routes

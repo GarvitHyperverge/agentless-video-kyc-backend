@@ -4,9 +4,6 @@ import { CardIdValidation } from '../types/cardIdValidation.types';
 
 /**
  * Creates card ID validation data in the database
- * 
- * @param data - Card ID validation data (excludes auto-generated fields: id, created_at)
- * @returns Promise<CardIdValidation> - The created card ID validation record
  */
 export const createCardIdValidation = async (
   data: Omit<CardIdValidationModel, 'id' | 'created_at'>
