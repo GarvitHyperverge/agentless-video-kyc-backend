@@ -8,4 +8,5 @@ export interface SelfieUploadRequestDto {
 export interface SelfieUploadResponseDto {
   sessionId: string;
   selfiePath: string;
+  isLive: boolean;
 }

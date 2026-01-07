@@ -19,7 +19,6 @@ export const uploadOtpVideo = async (req: Request, res: Response): Promise<void>
       res.status(400).json(response);
       return;
     }
-    console.log('session_id', session_id);
     const result = await uploadOtpVideoService(session_id, otp, video);
 
     const response: ApiResponseDto<OtpVideoUploadResponseDto> = {

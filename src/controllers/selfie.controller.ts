@@ -10,7 +10,6 @@ import { SelfieUploadRequestDto, SelfieUploadResponseDto } from '../dtos/selfie.
 export const uploadSelfie = async (req: Request, res: Response): Promise<void> => {
   try {
     const { session_id, image }: SelfieUploadRequestDto = req.body;
-    console.log('session_id', session_id);
     if (!session_id || !image) {
       const response: ApiResponseDto<never> = {
         success: false,

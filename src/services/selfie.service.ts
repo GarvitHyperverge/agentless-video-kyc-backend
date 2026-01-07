@@ -1,5 +1,7 @@
 import fs from 'fs';
 import path from 'path';
+import { checkLiveness } from './livenessCheck.service';
+import { createSelfieValidation } from '../repositories/selfieValidation.repository';
 import { SelfieUploadResponseDto } from '../dtos/selfie.dto';
 
 const SELFIE_DIR = path.join(__dirname, '../../assets/selfie');
@@ -22,19 +24,31 @@ const saveBase64Image = (base64Data: string, filename: string): string => {
 };
 
 /**
- * Upload selfie
+ * Upload selfie and check liveness
  */
 export const uploadSelfie = async (
   sessionId: string,
-  selfie: string
+  image: string
 ): Promise<SelfieUploadResponseDto> => {
   const selfieFilename = `${sessionId}_selfie.png`;
 
   // Save selfie to selfie folder
-  const selfiePath = saveBase64Image(selfie, selfieFilename);
+  const selfiePath = saveBase64Image(image, selfieFilename);
+
+  // Check liveness using HyperVerge API
+  const livenessResult = await checkLiveness(selfiePath, `${sessionId}_liveness`);
+
+  // Save liveness result to database
+  await createSelfieValidation({
+    session_uid: sessionId,
+    live_face_value: livenessResult.liveFaceValue,
+    live_face_confidence: livenessResult.liveFaceConfidence,
+    action: livenessResult.action,
+  });
 
   return {
     sessionId,
     selfiePath,
+    isLive: livenessResult.isLive,
   };
 };
