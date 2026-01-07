@@ -44,11 +44,11 @@ export const compareAllFields = async (
     };
 
     const response = await axios.post(
-      'https://ind-verify.hyperverge.co/api/matchFields',
+      `${config.hyperverge.baseUrl}/matchFields`,
       requestBody,
       {
         headers: {
-          'Content-Type': 'application/json',
+          contentType: 'application/json',
           appId: config.hyperverge.appId,
           appKey: config.hyperverge.appKey,
           transactionId: transactionId,
