@@ -1,21 +1,12 @@
 import https from 'https';
 import axios from 'axios';
 import { config } from '../config';
+import { FieldMatchResponseDto } from '../dtos/fieldMatch.dto';
 
 // Create https agent that bypasses SSL certificate verification (for development)
 const httpsAgent = new https.Agent({
   rejectUnauthorized: false,
 });
-
-interface CompareAllFieldsResult {
-  allMatched: boolean;
-  results: {
-    name: { value1: string; value2: string; match: boolean };
-    dateOfBirth: { value1: string; value2: string; match: boolean };
-    fatherName: { value1: string; value2: string; match: boolean };
-    idNumber: { value1: string; value2: string; match: boolean };
-  };
-}
 
 /**
  * Compare all fields between extracted data and business partner data
@@ -35,7 +26,7 @@ export const compareAllFields = async (
     father_name: string;
     pan_number: string;
   }
-): Promise<CompareAllFieldsResult> => {
+): Promise<FieldMatchResponseDto> => {
   try {
     const requestBody = {
       name: {

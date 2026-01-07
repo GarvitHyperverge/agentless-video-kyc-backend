@@ -3,17 +3,12 @@ import https from 'https';
 import FormData from 'form-data';
 import axios from 'axios';
 import { config } from '../config';
+import { FaceMatchResponseDto } from '../dtos/faceMatch.dto';
 
 // Create https agent that bypasses SSL certificate verification (for development)
 const httpsAgent = new https.Agent({
   rejectUnauthorized: false,
 });
-
-export interface FaceMatchResult {
-  match: boolean;
-  confidence: string;
-  action: string;
-}
 
 /**
  * Call HyperVerge API to match faces between selfie and ID card
@@ -22,7 +17,7 @@ export const matchFace = async (
   selfieImagePath: string,
   idCardImagePath: string,
   transactionId: string
-): Promise<FaceMatchResult> => {
+): Promise<FaceMatchResponseDto> => {
   try {
     const formData = new FormData();
     formData.append('selfie', fs.createReadStream(selfieImagePath));
@@ -33,7 +28,7 @@ export const matchFace = async (
       formData,
       {
         headers: {
-          ...formData.getHeaders(),
+          contentType: 'multipart/form-data',
           appId: config.hyperverge.appId,
           appKey: config.hyperverge.appKey,
           transactionId: transactionId,

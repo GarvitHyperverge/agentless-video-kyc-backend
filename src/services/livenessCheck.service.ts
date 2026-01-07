@@ -3,18 +3,12 @@ import https from 'https';
 import FormData from 'form-data';
 import axios from 'axios';
 import { config } from '../config';
+import { LivenessCheckResponseDto } from '../dtos/livenessCheck.dto';
 
 // Create https agent that bypasses SSL certificate verification (for development)
 const httpsAgent = new https.Agent({
   rejectUnauthorized: false,
 });
-
-export interface LivenessCheckResult {
-  isLive: boolean;
-  liveFaceValue: string;
-  liveFaceConfidence: string;
-  action: string;
-}
 
 /**
  * Call HyperVerge API to check liveness of selfie
@@ -22,7 +16,7 @@ export interface LivenessCheckResult {
 export const checkLiveness = async (
   imagePath: string,
   transactionId: string
-): Promise<LivenessCheckResult> => {
+): Promise<LivenessCheckResponseDto> => {
   try {
     const formData = new FormData();
     formData.append('image', fs.createReadStream(imagePath));
@@ -33,7 +27,7 @@ export const checkLiveness = async (
       formData,
       {
         headers: {
-          ...formData.getHeaders(),
+          contentType: 'multipart/form-data',
           appId: config.hyperverge.appId,
           appKey: config.hyperverge.appKey,
           transactionId: transactionId,
@@ -43,7 +37,6 @@ export const checkLiveness = async (
     );
     const result = response.data.result;
     
-    // Extract liveness data from response - details is an object, not an array
     const liveFaceValue = result?.details?.liveFace?.value || '';
     const liveFaceConfidence = result?.details?.liveFace?.confidence || '';
     const action = result?.summary?.action || '';

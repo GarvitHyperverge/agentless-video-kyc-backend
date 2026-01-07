@@ -4,7 +4,7 @@ import FormData from 'form-data';
 import axios from 'axios';
 import { config } from '../config';
 import { VerifyIdCardRequestDto } from '../dtos/idCardValidation.dto';
-import { PanCardExtractedData } from '../types/idCardValidation.types';
+import { IdCardExtractionResponseDto } from '../dtos/idCardExtraction.dto';
 
 // Create https agent that bypasses SSL certificate verification (for development)
 const httpsAgent = new https.Agent({
@@ -20,7 +20,7 @@ export const verifyIdCard = async ({
   countryId,
   documentId,
   expectedDocumentSide,
-}: VerifyIdCardRequestDto): Promise<PanCardExtractedData> => {
+}: VerifyIdCardRequestDto): Promise<IdCardExtractionResponseDto> => {
   try {
     const formData = new FormData();
     formData.append('image', fs.createReadStream(imagePath));
@@ -44,7 +44,7 @@ export const verifyIdCard = async ({
 
     const fields = response.data.result?.details?.[0]?.fieldsExtracted;
 
-    const extractedData: PanCardExtractedData = {
+    const extractedData: IdCardExtractionResponseDto = {
       fullName: fields?.fullName?.value || '',
       dateOfBirth: fields?.dateOfBirth?.value || '',
       fatherName: fields?.fatherName?.value || '',

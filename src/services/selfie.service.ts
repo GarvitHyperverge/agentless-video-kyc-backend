@@ -27,7 +27,7 @@ const saveBase64Image = (base64Data: string, filename: string): string => {
 };
 
 /**
- * Upload selfie and check liveness
+ * Upload selfie and check liveness and match face with PAN card
  */
 export const uploadSelfie = async (
   sessionId: string,
