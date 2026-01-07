@@ -4,7 +4,7 @@ import { checkLiveness } from './livenessCheck.service';
 import { matchFace } from './faceMatch.service';
 import { createSelfieValidation } from '../repositories/selfieValidation.repository';
 import { createFaceMatchResult } from '../repositories/faceMatchResult.repository';
-import { SelfieUploadResponseDto } from '../dtos/selfie.dto';
+import { SelfieUploadRequestDto, SelfieUploadResponseDto } from '../dtos/selfie.dto';
 
 const SELFIE_DIR = path.join(__dirname, '../../assets/selfie');
 const PAN_DIR = path.join(__dirname, '../../assets/pan');
@@ -30,27 +30,26 @@ const saveBase64Image = (base64Data: string, filename: string): string => {
  * Upload selfie and check liveness and match face with PAN card
  */
 export const uploadSelfie = async (
-  sessionId: string,
-  image: string
+  dto: SelfieUploadRequestDto
 ): Promise<SelfieUploadResponseDto> => {
-  const selfieFilename = `${sessionId}_selfie.png`;
+  const selfieFilename = `${dto.session_id}_selfie.png`;
 
   // Save selfie to selfie folder
-  const selfiePath = saveBase64Image(image, selfieFilename);
+  const selfiePath = saveBase64Image(dto.image, selfieFilename);
 
   // Check liveness using HyperVerge API
-  const livenessResult = await checkLiveness(selfiePath, `${sessionId}_liveness`);
+  const livenessResult = await checkLiveness(selfiePath, `${dto.session_id}_liveness`);
 
   // Save liveness result to database
   await createSelfieValidation({
-    session_uid: sessionId,
+    session_uid: dto.session_id,
     live_face_value: livenessResult.liveFaceValue,
     live_face_confidence: livenessResult.liveFaceConfidence,
     action: livenessResult.action,
   });
 
   // Match face with PAN card
-  const panCardImagePath = path.join(PAN_DIR, `${sessionId}_pan_front.png`);
+  const panCardImagePath = path.join(PAN_DIR, `${dto.session_id}_pan_front.png`);
   
   // Check if PAN card image exists
   if (!fs.existsSync(panCardImagePath)) {
@@ -58,18 +57,18 @@ export const uploadSelfie = async (
   }
 
   // Match selfie with PAN card face
-  const faceMatchResult = await matchFace(selfiePath, panCardImagePath, `${sessionId}_faceMatch`);
+  const faceMatchResult = await matchFace(selfiePath, panCardImagePath, `${dto.session_id}_faceMatch`);
 
   // Save face match result to database
   await createFaceMatchResult({
-    session_uid: sessionId,
+    session_uid: dto.session_id,
     match_value: faceMatchResult.match ? 'yes' : 'no',
     match_confidence: faceMatchResult.confidence,
     action: faceMatchResult.action,
   });
 
   return {
-    sessionId,
+    sessionId: dto.session_id,
     selfiePath,
     isLive: livenessResult.isLive,
     faceMatch: faceMatchResult.match,

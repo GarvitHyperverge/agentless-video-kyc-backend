@@ -4,7 +4,7 @@ import { verifyIdCard } from './idCardValidation.service';
 import { createCardIdValidation } from '../repositories/cardIdValidation.repository';
 import { getBusinessPartnerPanDataBySessionUid } from '../repositories/businessPartnerPanData.repository';
 import { compareAllFields } from './fieldMatch.service';
-import { PanCardUploadResponseDto } from '../dtos/panCard.dto';
+import { PanCardUploadRequestDto, PanCardUploadResponseDto } from '../dtos/panCard.dto';
 
 const PAN_DIR = path.join(__dirname, '../../assets/pan');
 
@@ -28,21 +28,19 @@ const saveBase64Image = (base64Data: string, filename: string): string => {
  * Upload and verify PAN card front and back images
  */
 export const uploadPanCardImages = async (
-  sessionId: string,
-  frontImage: string,
-  backImage: string
+  dto: PanCardUploadRequestDto
 ): Promise<PanCardUploadResponseDto> => {
-  const frontFilename = `${sessionId}_pan_front.png`;
-  const backFilename = `${sessionId}_pan_back.png`;
+  const frontFilename = `${dto.session_id}_pan_front.png`;
+  const backFilename = `${dto.session_id}_pan_back.png`;
 
   // Save front and back images to assets folder
-  const frontImagePath = saveBase64Image(frontImage, frontFilename);
-  const backImagePath = saveBase64Image(backImage, backFilename);
+  const frontImagePath = saveBase64Image(dto.front_image, frontFilename);
+  const backImagePath = saveBase64Image(dto.back_image, backFilename);
 
   // Verify front image with HyperVerge API
   const frontVerification = await verifyIdCard({
     imagePath: frontImagePath,
-    transactionId: `${sessionId}_front`,
+    transactionId: `${dto.session_id}_front`,
     documentId: 'pan',
     countryId: 'ind',
     expectedDocumentSide: 'front',
@@ -50,7 +48,7 @@ export const uploadPanCardImages = async (
 
   // Save extracted data to database
   await createCardIdValidation({
-    session_uid: sessionId,
+    session_uid: dto.session_id,
     id_number: frontVerification.idNumber,
     full_name: frontVerification.fullName,
     date_of_birth: frontVerification.dateOfBirth,
@@ -58,7 +56,7 @@ export const uploadPanCardImages = async (
   });
 
   // Get business partner data for comparison
-  const businessPartnerData = await getBusinessPartnerPanDataBySessionUid(sessionId);
+  const businessPartnerData = await getBusinessPartnerPanDataBySessionUid(dto.session_id);
 
   if (!businessPartnerData) {
     throw new Error('Business partner PAN data not found for this session');
@@ -66,7 +64,7 @@ export const uploadPanCardImages = async (
 
   // Compare fields using HyperVerge matchFields API
   const comparisonResult = await compareAllFields(
-    sessionId,
+    dto.session_id,
     {
       fullName: frontVerification.fullName,
       dateOfBirth: frontVerification.dateOfBirth,
@@ -82,7 +80,7 @@ export const uploadPanCardImages = async (
   );
 
   return {
-    sessionId,
+    sessionId: dto.session_id,
     frontVerification,
     verificationStatus: comparisonResult.allMatched,
   };

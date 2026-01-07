@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { OtpVideoUploadResponseDto } from '../dtos/otpVideo.dto';
+import { OtpVideoUploadRequestDto, OtpVideoUploadResponseDto } from '../dtos/otpVideo.dto';
 
 const OTP_VIDEOS_DIR = path.join(__dirname, '../../assets/otpVideos');
 
@@ -25,17 +25,15 @@ const saveBase64Video = (base64Data: string, filename: string): string => {
  * Upload OTP video
  */
 export const uploadOtpVideo = async (
-  sessionId: string,
-  otp: string,
-  video: string
+  dto: OtpVideoUploadRequestDto
 ): Promise<OtpVideoUploadResponseDto> => {
-  const videoFilename = `${sessionId}_otpVid.webm`;
+  const videoFilename = `${dto.session_id}_otpVid.webm`;
 
   // Save video to otpVideos folder
-  const videoPath = saveBase64Video(video, videoFilename);
+  const videoPath = saveBase64Video(dto.video, videoFilename);
 
   return {
-    sessionId,
+    sessionId: dto.session_id,
     videoPath,
   };
 };

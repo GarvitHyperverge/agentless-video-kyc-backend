@@ -19,7 +19,7 @@ export const uploadSelfie = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    const result = await uploadSelfieService(session_id, image);
+    const result = await uploadSelfieService({ session_id, image });
 
     // Check if liveness and face match both passed
     if (!result.isLive || !result.faceMatch) {

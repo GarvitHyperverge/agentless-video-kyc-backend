@@ -20,7 +20,7 @@ export const uploadPanCardImages = async (req: Request, res: Response): Promise<
       return;
     }
 
-    const result = await uploadPanCardImagesService(session_id, front_image, back_image);
+    const result = await uploadPanCardImagesService({ session_id, front_image, back_image });
 
     // Only return success: true if verificationStatus is true
     if (!result.verificationStatus) {
