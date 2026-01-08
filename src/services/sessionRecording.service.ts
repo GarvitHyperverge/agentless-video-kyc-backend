@@ -34,15 +34,6 @@ export async function uploadSessionRecording(
     throw new Error('Video file is required');
   }
 
-  // Check file size (max 100MB)
-  const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
-  if (dto.video.buffer.length > MAX_FILE_SIZE) {
-    const fileSizeMB = (dto.video.buffer.length / 1024 / 1024).toFixed(2);
-    throw new Error(
-      `Video file too large: ${fileSizeMB}MB. Maximum size is 100MB.`
-    );
-  }
-
   if (dto.video.buffer.length === 0) {
     throw new Error('Video blob is empty');
   }
