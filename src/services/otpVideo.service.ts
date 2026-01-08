@@ -2,11 +2,14 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
 import { OtpVideoUploadRequestDto, OtpVideoUploadResponseDto } from '../dtos/otpVideo.dto';
+import { watermarkVideo } from '../utils/videoWatermark.util';
 
 const writeFile = promisify(fs.writeFile);
+const unlink = promisify(fs.unlink);
 
 // Directory path for OTP videos
 const OTP_VIDEOS_DIR = path.join(process.cwd(), 'assets', 'otpVideos');
+const TEMP_DIR = path.join(process.cwd(), 'assets', 'temp');
 
 // Helper function to check if directory exists
 async function ensureDirectoryExists(dirPath: string): Promise<void> {
@@ -16,18 +19,21 @@ async function ensureDirectoryExists(dirPath: string): Promise<void> {
 }
 
 /**
- * Upload OTP video
+ * Upload OTP video with watermark
  */
 export async function uploadOtpVideo(
   dto: OtpVideoUploadRequestDto
 ): Promise<OtpVideoUploadResponseDto> {
-  // Ensure directory exists
+  // Ensure directories exist
   await ensureDirectoryExists(OTP_VIDEOS_DIR);
+  await ensureDirectoryExists(TEMP_DIR);
 
   // Validate otp
   if (!dto.otp || dto.otp.trim() === '') {
     throw new Error('otp is required');
   }
+
+  // Validate latitude and longitude
 
   // Validate video file
   if (!dto.video || !dto.video.buffer) {
@@ -40,10 +46,28 @@ export async function uploadOtpVideo(
 
   // Generate filename: {session_id}_otpVid.webm
   const filename = `${dto.session_id}_otpVid.webm`;
-  const filePath = path.join(OTP_VIDEOS_DIR, filename);
+  const tempFilePath = path.join(TEMP_DIR, `temp_${dto.session_id}_${Date.now()}.webm`);
+  const finalFilePath = path.join(OTP_VIDEOS_DIR, filename);
 
-  // Save video file
-  await writeFile(filePath, dto.video.buffer);
+  try {
+    // Save video to temp file first
+    await writeFile(tempFilePath, dto.video.buffer);
+
+    // Watermark the video with location and timestamp
+    await watermarkVideo(
+      tempFilePath,
+      finalFilePath,
+      dto.latitude,
+      dto.longitude
+    );
+
+    // Clean up temp file
+    await unlink(tempFilePath).catch(console.error);
+  } catch (error) {
+    // Clean up temp file on error
+    await unlink(tempFilePath).catch(console.error);
+    throw error;
+  }
 
   // Return relative path for API response
   const relativePath = `/assets/otpVideos/${filename}`;
@@ -51,6 +75,6 @@ export async function uploadOtpVideo(
   return {
     sessionId: dto.session_id,
     videoPath: relativePath,
-    message: 'OTP video uploaded successfully',
+    message: 'OTP video uploaded and watermarked successfully',
   };
 }
