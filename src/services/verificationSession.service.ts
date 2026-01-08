@@ -2,7 +2,7 @@ import sql from '../config/supabase';
 import { VerificationSession } from '../types';
 import { CreateVerificationSessionRequestDto } from '../dtos/verificationSession.dto';
 import { v4 as uuidv4 } from 'uuid';
-import { createVerificationSession as createVerificationSessionRepo } from '../repositories/verificationSession.repository';
+import { createVerificationSession as createVerificationSessionRepo, updateVerificationSessionStatus as updateVerificationSessionStatusRepo } from '../repositories/verificationSession.repository';
 import { createBusinessPartnerPanData } from '../repositories/businessPartnerPanData.repository';
 
 /**
@@ -37,4 +37,11 @@ export const createVerificationSession = async (dto: CreateVerificationSessionRe
     
     return session;
   });
+};
+
+/**
+ * Mark verification session status as completed
+ */
+export const markVerificationSessionCompleted = async (sessionUid: string): Promise<VerificationSession> => {
+  return await updateVerificationSessionStatusRepo(sessionUid, 'completed');
 };

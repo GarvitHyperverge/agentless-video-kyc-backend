@@ -7,7 +7,7 @@ import { createSessionMetadata as createSessionMetadataRepo } from '../repositor
  */
 export const createSessionMetadata = async (dto: CreateSessionMetadataRequestDto): Promise<SessionMetadata> => {
   const sessionMetadata = await createSessionMetadataRepo({
-    session_uid: dto.session_uid,
+    session_uid: dto.session_id,
     latitude: dto.latitude,
     longitude: dto.longitude,
     camera_permission: dto.camera_permission,

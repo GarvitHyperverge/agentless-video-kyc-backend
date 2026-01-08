@@ -16,3 +16,8 @@ export interface VerificationSessionResponseDto {
   created_at: Date;
   updated_at: Date;
 }
+
+// Update status request DTO
+export interface UpdateVerificationSessionStatusRequestDto {
+  session_id: string;
+}

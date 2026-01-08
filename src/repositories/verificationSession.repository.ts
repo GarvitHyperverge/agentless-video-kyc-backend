@@ -29,3 +29,52 @@ export const createVerificationSession = async (
   return session;
 };
 
+/**
+ * Gets a verification session by session_uid
+ */
+export const getVerificationSessionByUid = async (
+  sessionUid: string,
+  tx?: typeof sql
+): Promise<VerificationSession | null> => {
+  const query = tx || sql;
+  const [session] = await query<VerificationSession[]>`
+    SELECT 
+      session_uid,
+      external_txn_id,
+      status,
+      created_at,
+      updated_at
+    FROM verification_session
+    WHERE session_uid = ${sessionUid}
+  `;
+  
+  return session || null;
+};
+
+/**
+ * Updates the status of a verification session
+ */
+export const updateVerificationSessionStatus = async (
+  sessionId: string,
+  status: string,
+  tx?: typeof sql
+): Promise<VerificationSession> => {
+  const query = tx || sql;
+  const [session] = await query<VerificationSession[]>`
+    UPDATE verification_session
+    SET status = ${status}, updated_at = NOW()
+    WHERE session_uid = ${sessionId}
+    RETURNING 
+      session_uid,
+      external_txn_id,
+      status,
+      created_at,
+      updated_at
+  `;
+  
+  if (!session) {
+    throw new Error('Verification session not found');
+  }
+  
+  return session;
+};

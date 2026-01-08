@@ -1,6 +1,6 @@
 // Request DTO
 export interface CreateSessionMetadataRequestDto {
-  session_uid: string;
+  session_id: string;
   latitude: number;
   longitude: number;
   camera_permission: boolean;
