@@ -1,39 +1,56 @@
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
+import { promisify } from 'util';
 import { OtpVideoUploadRequestDto, OtpVideoUploadResponseDto } from '../dtos/otpVideo.dto';
 
-const OTP_VIDEOS_DIR = path.join(__dirname, '../../assets/otpVideos');
+const writeFile = promisify(fs.writeFile);
 
-// Ensure directory exists
-if (!fs.existsSync(OTP_VIDEOS_DIR)) {
-  fs.mkdirSync(OTP_VIDEOS_DIR, { recursive: true });
+// Directory path for OTP videos
+const OTP_VIDEOS_DIR = path.join(process.cwd(), 'assets', 'otpVideos');
+
+// Helper function to check if directory exists
+async function ensureDirectoryExists(dirPath: string): Promise<void> {
+  if (!fs.existsSync(dirPath)) {
+    await fs.promises.mkdir(dirPath, { recursive: true });
+  }
 }
-
-/**
- * Save base64 video to file
- */
-const saveBase64Video = (base64Data: string, filename: string): string => {
-  // Remove data URL prefix if present (e.g., "data:video/mp4;base64," or "data:video/webm;base64,")
-  const base64Video = base64Data.replace(/^data:video\/\w+;base64,/, '');
-  const buffer = Buffer.from(base64Video, 'base64');
-  const filePath = path.join(OTP_VIDEOS_DIR, filename);
-  fs.writeFileSync(filePath, buffer);
-  return filePath;
-};
 
 /**
  * Upload OTP video
  */
-export const uploadOtpVideo = async (
+export async function uploadOtpVideo(
   dto: OtpVideoUploadRequestDto
-): Promise<OtpVideoUploadResponseDto> => {
-  const videoFilename = `${dto.session_id}_otpVid.webm`;
+): Promise<OtpVideoUploadResponseDto> {
+  // Ensure directory exists
+  await ensureDirectoryExists(OTP_VIDEOS_DIR);
 
-  // Save video to otpVideos folder
-  const videoPath = saveBase64Video(dto.video, videoFilename);
+  // Validate otp
+  if (!dto.otp || dto.otp.trim() === '') {
+    throw new Error('otp is required');
+  }
+
+  // Validate video file
+  if (!dto.video || !dto.video.buffer) {
+    throw new Error('Video file is required');
+  }
+
+  if (dto.video.buffer.length === 0) {
+    throw new Error('Video blob is empty');
+  }
+
+  // Generate filename: {session_id}_otpVid.webm
+  const filename = `${dto.session_id}_otpVid.webm`;
+  const filePath = path.join(OTP_VIDEOS_DIR, filename);
+
+  // Save video file
+  await writeFile(filePath, dto.video.buffer);
+
+  // Return relative path for API response
+  const relativePath = `/assets/otpVideos/${filename}`;
 
   return {
     sessionId: dto.session_id,
-    videoPath,
+    videoPath: relativePath,
+    message: 'OTP video uploaded successfully',
   };
-};
+}

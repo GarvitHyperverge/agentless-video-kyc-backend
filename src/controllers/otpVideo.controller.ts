@@ -1,25 +1,50 @@
 import { Request, Response } from 'express';
 import { uploadOtpVideo as uploadOtpVideoService } from '../services/otpVideo.service';
 import { ApiResponseDto } from '../dtos/apiResponse.dto';
-import { OtpVideoUploadRequestDto, OtpVideoUploadResponseDto } from '../dtos/otpVideo.dto';
+import { OtpVideoUploadResponseDto } from '../dtos/otpVideo.dto';
 
 /**
  * Upload OTP video
- * POST /api/otp-video-upload
+ * POST /api/otp-video/upload
  */
 export const uploadOtpVideo = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { session_id, otp, video }: OtpVideoUploadRequestDto = req.body;
+    const { session_id, otp } = req.body;
+    const video = req.file;
 
-    if (!session_id || !otp || !video) {
+    // Validate required fields
+    if (!session_id) {
       const response: ApiResponseDto<never> = {
         success: false,
-        error: 'session_id, otp, and video are required',
+        error: 'session_id is required',
       };
       res.status(400).json(response);
       return;
     }
-    const result = await uploadOtpVideoService({ session_id, otp, video });
+
+    if (!otp) {
+      const response: ApiResponseDto<never> = {
+        success: false,
+        error: 'otp is required',
+      };
+      res.status(400).json(response);
+      return;
+    }
+
+    if (!video) {
+      const response: ApiResponseDto<never> = {
+        success: false,
+        error: 'video file is required',
+      };
+      res.status(400).json(response);
+      return;
+    }
+
+    const result = await uploadOtpVideoService({
+      session_id,
+      otp,
+      video,
+    });
 
     const response: ApiResponseDto<OtpVideoUploadResponseDto> = {
       success: true,
@@ -32,6 +57,13 @@ export const uploadOtpVideo = async (req: Request, res: Response): Promise<void>
       success: false,
       error: error.message || 'Failed to upload OTP video',
     };
-    res.status(500).json(response);
+
+    // Determine appropriate status code
+    let statusCode = 500;
+    if (error.message?.includes('required') || error.message?.includes('empty')) {
+      statusCode = 400;
+    }
+
+    res.status(statusCode).json(response);
   }
 };

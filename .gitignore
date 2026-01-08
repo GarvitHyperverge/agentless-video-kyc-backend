@@ -7,3 +7,6 @@ dist/
 
 # Environment variables
 .env
+
+# Runtime directories
+assets/
