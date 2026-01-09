@@ -31,12 +31,12 @@ export async function watermarkVideo(
   // Generate server timestamp
   const timestamp = new Date().toISOString();
   
-  // Format timestamp for display (e.g., "8/1/2026 18:13:59")
+  // Format timestamp for display (e.g., "day/month/year hours(24):minutes:seconds")
   const date = new Date(timestamp);
-  const month = date.getMonth() + 1; // getMonth() returns 0-11, so add 1
   const day = date.getDate();
+  const month = date.getMonth() + 1; // getMonth() returns 0-11, so add 1
   const year = date.getFullYear();
-  const formattedDate = `${month}/${day}/${year}`;
+  const formattedDate = `${day}/${month}/${year}`;
   
   // Format time in 24-hour format (HH:MM:SS)
   const formattedTime = date.toLocaleTimeString('en-IN', {
