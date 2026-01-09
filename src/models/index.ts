@@ -4,3 +4,4 @@ export * from './sessionMetadata.model';
 export * from './cardIdValidation.model';
 export * from './faceMatchResult.model';
 export * from './selfieValidation.model';
+export * from './apiClient.model';

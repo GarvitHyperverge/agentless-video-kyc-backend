@@ -5,3 +5,4 @@ export * from './cardIdValidation.types';
 export * from './faceMatchResult.types';
 export * from './selfieValidation.types';
 export * from './idCardValidation.types';
+export * from './apiClient.types';

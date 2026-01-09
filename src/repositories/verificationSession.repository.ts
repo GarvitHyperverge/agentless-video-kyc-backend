@@ -52,6 +52,31 @@ export const getVerificationSessionByUid = async (
 };
 
 /**
+ * Gets a verification session by external_txn_id and status
+ */
+export const getVerificationSessionByExternalTxnIdAndStatus = async (
+  externalTxnId: string,
+  status: string,
+  tx?: typeof sql
+): Promise<VerificationSession | null> => {
+  const query = tx || sql;
+  const [session] = await query<VerificationSession[]>`
+    SELECT 
+      session_uid,
+      external_txn_id,
+      status,
+      created_at,
+      updated_at
+    FROM verification_session
+    WHERE external_txn_id = ${externalTxnId} AND status = ${status}
+    ORDER BY created_at DESC
+    LIMIT 1
+  `;
+  
+  return session || null;
+};
+
+/**
  * Updates the status of a verification session
  */
 export const updateVerificationSessionStatus = async (
