@@ -5,7 +5,7 @@ import { validateSessionMiddleware } from '../middleware/validateSession.middlew
 
 const router = Router();
 
-const storage = multer.memoryStorage();
+const storage = multer.memoryStorage(); // use RAM
 
 // Create multer instance with configuration options
 const upload = multer({
@@ -33,6 +33,6 @@ const upload = multer({
   },
 });
 
-router.post('/upload', upload.single('video'), uploadOtpVideo);
+router.post('/upload', upload.single('video'), validateSessionMiddleware, uploadOtpVideo);
 
 export default router;

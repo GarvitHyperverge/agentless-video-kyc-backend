@@ -9,8 +9,8 @@ import { SelfieUploadRequestDto, SelfieUploadResponseDto } from '../dtos/selfie.
  */
 export const uploadSelfie = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { session_id, image }: SelfieUploadRequestDto = req.body;
-    if (!session_id || !image) {
+    const dto: SelfieUploadRequestDto = req.body;
+    if (!dto.session_id || !dto.image) {
       const response: ApiResponseDto<never> = {
         success: false,
         error: 'session_id and image are required',
@@ -19,7 +19,7 @@ export const uploadSelfie = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    const result = await uploadSelfieService({ session_id, image });
+    const result = await uploadSelfieService(dto);
 
     // Check if liveness and face match both passed
     if (!result.isLive || !result.faceMatch) {

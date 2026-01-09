@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { uploadSessionRecording } from '../controllers/sessionRecording.controller';
+import { validateSessionMiddleware } from '../middleware/validateSession.middleware';
 
 const router = Router();
 
@@ -52,6 +53,6 @@ const upload = multer({
  *    - Makes other form fields (like session_id) available as req.body
  * 2. uploadSessionRecording - Controller that handles the business logic
  */
-router.post('/upload', upload.single('video'), uploadSessionRecording);
+router.post('/upload', upload.single('video'), validateSessionMiddleware, uploadSessionRecording);
 
 export default router;

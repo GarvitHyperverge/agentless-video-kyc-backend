@@ -28,22 +28,6 @@ export async function uploadOtpVideo(
   await ensureDirectoryExists(OTP_VIDEOS_DIR);
   await ensureDirectoryExists(TEMP_DIR);
 
-  // Validate otp
-  if (!dto.otp || dto.otp.trim() === '') {
-    throw new Error('otp is required');
-  }
-
-  // Validate latitude and longitude
-
-  // Validate video file
-  if (!dto.video || !dto.video.buffer) {
-    throw new Error('Video file is required');
-  }
-
-  if (dto.video.buffer.length === 0) {
-    throw new Error('Video blob is empty');
-  }
-
   // Generate filename: {session_id}_otpVid.webm
   const filename = `${dto.session_id}_otpVid.webm`;
   const tempFilePath = path.join(TEMP_DIR, `temp_${dto.session_id}_${Date.now()}.webm`);

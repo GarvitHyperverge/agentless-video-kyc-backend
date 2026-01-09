@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { uploadOtpVideo as uploadOtpVideoService } from '../services/otpVideo.service';
 import { ApiResponseDto } from '../dtos/apiResponse.dto';
-import { OtpVideoUploadResponseDto } from '../dtos/otpVideo.dto';
+import { OtpVideoUploadRequestDto, OtpVideoUploadResponseDto } from '../dtos/otpVideo.dto';
 
 /**
  * Upload OTP video
@@ -22,7 +22,7 @@ export const uploadOtpVideo = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    if (!otp) {
+    if (!otp || otp.trim() === '') {
       const response: ApiResponseDto<never> = {
         success: false,
         error: 'otp is required',
@@ -40,7 +40,7 @@ export const uploadOtpVideo = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    if (!video) {
+    if (!video || !video.buffer) {
       const response: ApiResponseDto<never> = {
         success: false,
         error: 'video file is required',
@@ -49,13 +49,24 @@ export const uploadOtpVideo = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    const result = await uploadOtpVideoService({
+    if (video.buffer.length === 0) {
+      const response: ApiResponseDto<never> = {
+        success: false,
+        error: 'Video blob is empty',
+      };
+      res.status(400).json(response);
+      return;
+    }
+
+    const dto: OtpVideoUploadRequestDto = {
       session_id,
       otp,
       latitude,
       longitude,
       video,
-    });
+    };
+
+    const result = await uploadOtpVideoService(dto);
 
     const response: ApiResponseDto<OtpVideoUploadResponseDto> = {
       success: true,

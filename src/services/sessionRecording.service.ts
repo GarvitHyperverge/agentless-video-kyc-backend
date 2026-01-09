@@ -28,20 +28,6 @@ export async function uploadSessionRecording(
   await ensureDirectoryExists(SESSION_VIDEOS_DIR);
   await ensureDirectoryExists(TEMP_DIR);
 
-  // Validate session_id
-  if (!dto.session_id || dto.session_id.trim() === '') {
-    throw new Error('session_id is required');
-  }
-
-  // Validate video file
-  if (!dto.video || !dto.video.buffer) {
-    throw new Error('Video file is required');
-  }
-
-  if (dto.video.buffer.length === 0) {
-    throw new Error('Video blob is empty');
-  }
-
   // Generate filename: {session_id}_session_recording.webm
   const filename = `${dto.session_id}_session_recording.webm`;
   const tempFilePath = path.join(TEMP_DIR, `temp_${dto.session_id}_${Date.now()}.webm`);

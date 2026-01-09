@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { uploadSessionRecording as uploadSessionRecordingService } from '../services/sessionRecording.service';
 import { ApiResponseDto } from '../dtos/apiResponse.dto';
-import { SessionRecordingUploadResponseDto } from '../dtos/sessionRecording.dto';
+import { SessionRecordingUploadRequestDto, SessionRecordingUploadResponseDto } from '../dtos/sessionRecording.dto';
 
 /**
  * Upload session recording
@@ -13,7 +13,7 @@ export const uploadSessionRecording = async (req: Request, res: Response): Promi
     const video = req.file;
 
     // Validate required fields
-    if (!session_id) {
+    if (!session_id || session_id.trim() === '') {
       const response: ApiResponseDto<never> = {
         success: false,
         error: 'session_id is required',
@@ -31,7 +31,7 @@ export const uploadSessionRecording = async (req: Request, res: Response): Promi
       return;
     }
 
-    if (!video) {
+    if (!video || !video.buffer) {
       const response: ApiResponseDto<never> = {
         success: false,
         error: 'video file is required',
@@ -40,12 +40,23 @@ export const uploadSessionRecording = async (req: Request, res: Response): Promi
       return;
     }
 
-    const result = await uploadSessionRecordingService({
+    if (video.buffer.length === 0) {
+      const response: ApiResponseDto<never> = {
+        success: false,
+        error: 'Video blob is empty',
+      };
+      res.status(400).json(response);
+      return;
+    }
+
+    const dto: SessionRecordingUploadRequestDto = {
       session_id,
       latitude,
       longitude,
       video,
-    });
+    };
+
+    const result = await uploadSessionRecordingService(dto);
 
     const response: ApiResponseDto<SessionRecordingUploadResponseDto> = {
       success: true,

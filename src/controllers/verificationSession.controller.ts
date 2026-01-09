@@ -33,9 +33,9 @@ export const createVerificationSession = async (req: Request, res: Response): Pr
  */
 export const markVerificationSessionCompletedController = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { session_id }: UpdateVerificationSessionStatusRequestDto = req.body;
+    const dto: UpdateVerificationSessionStatusRequestDto = req.body;
     
-    if (!session_id) {
+    if (!dto.session_id) {
       const response: ApiResponseDto<never> = {
         success: false,
         error: 'session_id is required',
@@ -44,7 +44,7 @@ export const markVerificationSessionCompletedController = async (req: Request, r
       return;
     }
 
-    const session = await markVerificationSessionCompleted(session_id);
+    const session = await markVerificationSessionCompleted(dto.session_id);
     
     const response: ApiResponseDto<VerificationSessionResponseDto> = {
       success: true,
