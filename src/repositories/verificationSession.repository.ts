@@ -77,6 +77,40 @@ export const getVerificationSessionByExternalTxnIdAndStatus = async (
 };
 
 /**
+ * Gets all verification sessions with optional status filter
+ * @param filter - 'pending', 'completed', or 'all'. Defaults to 'pending'
+ */
+export const getAllSessionsByFilter = async (filter: 'pending' | 'completed' | 'all' = 'pending'): Promise<VerificationSession[]> => {
+  if (filter === 'all') {
+    const sessions = await sql<VerificationSession[]>`
+      SELECT 
+        session_uid,
+        external_txn_id,
+        status,
+        created_at,
+        updated_at
+      FROM verification_session
+      ORDER BY created_at DESC
+    `;
+    return sessions || [];
+  }
+
+  const sessions = await sql<VerificationSession[]>`
+    SELECT 
+      session_uid,
+      external_txn_id,
+      status,
+      created_at,
+      updated_at
+    FROM verification_session
+    WHERE status = ${filter}
+    ORDER BY created_at DESC
+  `;
+  
+  return sessions || [];
+};
+
+/**
  * Updates the status of a verification session
  */
 export const updateVerificationSessionStatus = async (

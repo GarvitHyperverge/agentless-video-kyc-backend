@@ -55,3 +55,30 @@ export const createSessionMetadata = async (
   
   return sessionMetadata;
 };
+
+/**
+ * Get session metadata by session_uid
+ */
+export const getSessionMetadataBySessionUid = async (
+  sessionUid: string
+): Promise<SessionMetadata | null> => {
+  const [sessionMetadata] = await sql<SessionMetadata[]>`
+    SELECT 
+      id,
+      session_uid,
+      latitude,
+      longitude,
+      camera_permission,
+      microphone_permission,
+      location_permission,
+      ip_address::text as ip_address,
+      device_type,
+      created_at,
+      updated_at
+    FROM session_metadata
+    WHERE session_uid = ${sessionUid}
+    LIMIT 1
+  `;
+  
+  return sessionMetadata || null;
+};

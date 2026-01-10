@@ -6,6 +6,7 @@ import panCardRoutes from './panCard.routes';
 import otpVideoRoutes from './otpVideo.routes';
 import selfieRoutes from './selfie.routes';
 import sessionRecordingRoutes from './sessionRecording.routes';
+import auditSessionRoutes from './auditSession.routes';
 
 const router = Router();
 
@@ -16,5 +17,6 @@ router.use('/pan-card', panCardRoutes);
 router.use('/otp-video', otpVideoRoutes);
 router.use('/selfie', selfieRoutes);
 router.use('/session-recording', sessionRecordingRoutes);
+router.use('/audit', auditSessionRoutes);
 
 export default router;

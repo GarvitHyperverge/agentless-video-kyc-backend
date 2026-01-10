@@ -36,3 +36,25 @@ export const createSelfieValidation = async (
   
   return selfieValidation;
 };
+
+/**
+ * Get selfie validation by session_uid
+ */
+export const getSelfieValidationBySessionUid = async (
+  sessionUid: string
+): Promise<SelfieValidation | null> => {
+  const [selfieValidation] = await sql<SelfieValidation[]>`
+    SELECT 
+      id,
+      session_uid,
+      live_face_value,
+      live_face_confidence,
+      action,
+      created_at
+    FROM selfie_validation_fields
+    WHERE session_uid = ${sessionUid}
+    LIMIT 1
+  `;
+  
+  return selfieValidation || null;
+};

@@ -36,3 +36,25 @@ export const createFaceMatchResult = async (
   
   return faceMatchResult;
 };
+
+/**
+ * Get face match result by session_uid
+ */
+export const getFaceMatchResultBySessionUid = async (
+  sessionUid: string
+): Promise<FaceMatchResult | null> => {
+  const [faceMatchResult] = await sql<FaceMatchResult[]>`
+    SELECT 
+      id,
+      session_uid,
+      match_value,
+      match_confidence,
+      action,
+      created_at
+    FROM face_match_result
+    WHERE session_uid = ${sessionUid}
+    LIMIT 1
+  `;
+  
+  return faceMatchResult || null;
+};
