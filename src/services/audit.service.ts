@@ -1,5 +1,10 @@
-import { getAllSessionsByFilter } from '../repositories/verificationSession.repository';
-import { PendingSessionsResponseDto } from '../dtos/audit.dto';
+import { getAllSessionsByFilter, getVerificationSessionByUid } from '../repositories/verificationSession.repository';
+import { getBusinessPartnerPanDataBySessionUid } from '../repositories/businessPartnerPanData.repository';
+import { getCardIdValidationBySessionUid } from '../repositories/cardIdValidation.repository';
+import { getFaceMatchResultBySessionUid } from '../repositories/faceMatchResult.repository';
+import { getSelfieValidationBySessionUid } from '../repositories/selfieValidation.repository';
+import { getSessionMetadataBySessionUid } from '../repositories/sessionMetadata.repository';
+import { PendingSessionsResponseDto, SessionDetailsDto } from '../dtos/audit.dto';
 
 /**
  * Get all verification sessions with optional status filter
@@ -12,5 +17,42 @@ export const getAllPendingSessions = async (filter: 'pending' | 'completed' | 'a
   return {
     sessions,
     total: sessions.length,
+  };
+};
+
+/**
+ * Get complete session details by session_uid
+ * @param sessionUid - Session unique identifier
+ */
+export const getSessionDetails = async (sessionUid: string): Promise<SessionDetailsDto | null> => {
+  // Get session basic info
+  const session = await getVerificationSessionByUid(sessionUid);
+
+  if (!session) {
+    return null;
+  }
+
+  // Get all related data in parallel
+  const [
+    businessPartnerPanData,
+    cardIdValidation,
+    faceMatchResult,
+    selfieValidation,
+    sessionMetadata,
+  ] = await Promise.all([
+    getBusinessPartnerPanDataBySessionUid(sessionUid),
+    getCardIdValidationBySessionUid(sessionUid),
+    getFaceMatchResultBySessionUid(sessionUid),
+    getSelfieValidationBySessionUid(sessionUid),
+    getSessionMetadataBySessionUid(sessionUid),
+  ]);
+
+  return {
+    session,
+    businessPartnerPanData,
+    cardIdValidation,
+    faceMatchResult,
+    selfieValidation,
+    sessionMetadata,
   };
 };

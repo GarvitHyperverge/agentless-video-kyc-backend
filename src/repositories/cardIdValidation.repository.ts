@@ -39,3 +39,26 @@ export const createCardIdValidation = async (
   
   return cardIdValidation;
 };
+
+/**
+ * Get card ID validation by session_uid
+ */
+export const getCardIdValidationBySessionUid = async (
+  sessionUid: string
+): Promise<CardIdValidation | null> => {
+  const [cardIdValidation] = await sql<CardIdValidation[]>`
+    SELECT 
+      id,
+      session_uid,
+      id_number,
+      full_name,
+      date_of_birth,
+      father_name,
+      created_at
+    FROM card_id_validation
+    WHERE session_uid = ${sessionUid}
+    LIMIT 1
+  `;
+  
+  return cardIdValidation || null;
+};
