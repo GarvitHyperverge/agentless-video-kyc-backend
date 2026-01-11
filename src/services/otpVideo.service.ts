@@ -5,6 +5,7 @@ import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { OtpVideoUploadRequestDto, OtpVideoUploadResponseDto } from '../dtos/otpVideo.dto';
 import { watermarkVideo } from '../utils/videoWatermark.util';
 import { supabaseS3 } from '../config/supabase';
+import { createVerificationInput } from '../repositories/verificationInput.repository';
 
 const writeFile = promisify(fs.writeFile);
 const unlink = promisify(fs.unlink);
@@ -126,6 +127,19 @@ export async function uploadOtpVideo(
       await unlink(tempFilePath).catch(console.error);
       console.error('Error uploading raw OTP video to S3:', rawUploadError);
       throw new Error('Failed to upload raw video to S3');
+    }
+
+    // Step 2.5: Store OTP in verification_inputs table
+    try {
+      await createVerificationInput({
+        session_uid: dto.session_id,
+        input_type: 'OTP',
+        input_value: dto.otp,
+      });
+      console.log(`OTP stored for session: ${dto.session_id}`);
+    } catch (otpStorageError: any) {
+      // Log error but don't fail the request - video upload succeeded
+      console.error('Error storing OTP in database:', otpStorageError);
     }
 
     // Step 3: Process watermarking and watermarked upload in background (fire-and-forget)

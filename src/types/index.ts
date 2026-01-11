@@ -7,3 +7,4 @@ export * from './selfieValidation.types';
 export * from './idCardValidation.types';
 export * from './apiClient.types';
 export * from './auditSession.types';
+export * from './verificationInput.types';

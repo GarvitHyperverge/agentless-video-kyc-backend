@@ -6,3 +6,4 @@ export * from './faceMatchResult.model';
 export * from './selfieValidation.model';
 export * from './apiClient.model';
 export * from './auditSession.model';
+export * from './verificationInput.model';
