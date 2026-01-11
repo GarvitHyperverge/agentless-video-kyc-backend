@@ -1,12 +1,19 @@
 export const config = {
   port: process.env.PORT || 3000,
-  databaseUrl: process.env.DATABASE_URL || '',
+  databaseUrl: process.env.SUPABASE_DATABASE_URL || '',
   hyperverge: {
-    appId: process.env.APP_ID || '',
-    appKey: process.env.APP_KEY || '',
+    appId: process.env.HYPERVERGE_APP_ID || '',
+    appKey: process.env.HYPERVERGE_APP_KEY || '',
     baseUrl: process.env.HYPERVERGE_BASE_URL || 'https://ind-verify.hyperverge.co',
   },
+  
   // HMAC timestamp tolerance in milliseconds (default: 5 minutes)
   // Prevents replay attacks by rejecting requests with timestamps outside this window
   hmacTimestampTolerance: parseInt(process.env.HMAC_TIMESTAMP_TOLERANCE || '300000', 10),
+  supabase: {
+    projectRef: process.env.SUPABASE_PROJECT_REF || '',
+    region: process.env.SUPABASE_REGION || 'ap-south-1',
+    s3AccessKey: process.env.SUPABASE_S3_ACCESS_KEY || '',
+    s3SecretKey: process.env.SUPABASE_S3_SECRET_KEY || '',
+  },
 };

@@ -17,7 +17,7 @@ const upload = multer({
   },
   
   // File type validation - only accept video files
-  fileFilter: (req, file, cb) => {
+  fileFilter: (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
     // Accept various video formats: WebM (with different codecs), MP4, and any video/* MIME type
     if (file.mimetype === 'video/webm' || 
         file.mimetype === 'video/webm;codecs=vp8' ||
