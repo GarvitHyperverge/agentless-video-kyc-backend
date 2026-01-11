@@ -3,16 +3,7 @@ import crypto from 'crypto';
 import { config } from '../config';
 import { ApiResponseDto } from '../dtos/apiResponse.dto';
 import { getApiClientByApiKey } from '../repositories/apiClient.repository';
-import { ApiClient } from '../types';
-
-/**
- * HMAC Authentication Headers
- */
-interface HmacAuthHeaders {
-  apiKey: string;
-  hmacSignature: string;
-  timestamp: string;
-}
+import { ApiClient, HmacAuthHeaders } from '../types';
 
 /**
  * Extract HMAC authentication headers from request
@@ -31,6 +22,10 @@ const extractAuthHeaders = (req: Request): HmacAuthHeaders | null => {
 
 /**
  * Validate that all required headers are present
+ * 
+ * Type Predicate (`headers is HmacAuthHeaders`): Tells TypeScript that when this function
+ * returns true, the parameter type is narrowed from `HmacAuthHeaders | null` to `HmacAuthHeaders`.
+ * This allows safe access to header properties after validation without optional chaining.
  */
 const validateHeaders = (headers: HmacAuthHeaders | null, res: Response): headers is HmacAuthHeaders => {
   if (!headers) {
@@ -76,12 +71,13 @@ const getAndValidateApiClient = async (
 /**
  * Validate timestamp to prevent replay attacks
  */
-const validateTimestamp = (timestamp: string, res: Response): number | null => {
+const validateTimestamp = (timestamp: string, res: Response): boolean => {
+  // Parse timestamp string from header to integer (base 10)
   const requestTimestamp = parseInt(timestamp, 10);
 
   if (isNaN(requestTimestamp)) {
     sendAuthError(res, 'Invalid timestamp format');
-    return null;
+    return false;
   }
 
   const currentTime = Date.now();
@@ -89,10 +85,10 @@ const validateTimestamp = (timestamp: string, res: Response): number | null => {
 
   if (timeDifference > config.hmacTimestampTolerance) {
     sendAuthError(res, 'Request timestamp is outside acceptable tolerance window');
-    return null;
+    return false;
   }
 
-  return requestTimestamp;
+  return true;
 };
 
 /**
@@ -182,8 +178,7 @@ export const hmacAuthMiddleware = async (
     const apiSecret = apiClient.api_secret_hash;
 
     // Validate timestamp
-    const validatedTimestamp = validateTimestamp(headers.timestamp, res);
-    if (validatedTimestamp === null) {
+    if (!validateTimestamp(headers.timestamp, res)) {
       return;
     }
 
