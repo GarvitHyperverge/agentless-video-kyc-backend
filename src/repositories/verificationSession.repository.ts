@@ -12,12 +12,13 @@ export const createVerificationSession = async (
 ): Promise<VerificationSession> => {
   const query = tx || sql;
   const [session] = await query<VerificationSession[]>`
-    INSERT INTO verification_session (session_uid, external_txn_id, status)
-    VALUES (${data.session_uid}, ${data.external_txn_id}, ${data.status})
+    INSERT INTO verification_session (session_uid, external_txn_id, status, client_name)
+    VALUES (${data.session_uid}, ${data.external_txn_id}, ${data.status}, ${data.client_name})
     RETURNING 
       session_uid,
       external_txn_id,
       status,
+      client_name,
       created_at,
       updated_at
   `;
@@ -42,6 +43,7 @@ export const getVerificationSessionByUid = async (
       session_uid,
       external_txn_id,
       status,
+      client_name,
       created_at,
       updated_at
     FROM verification_session
@@ -52,28 +54,25 @@ export const getVerificationSessionByUid = async (
 };
 
 /**
- * Gets a verification session by external_txn_id and status
+ * Checks if a verification session exists by client_name, external_txn_id and status
+ * Returns true if a session exists, false otherwise
  */
-export const getVerificationSessionByExternalTxnIdAndStatus = async (
+export const hasVerificationSessionByClientNameExternalTxnIdAndStatus = async (
+  clientName: string,
   externalTxnId: string,
   status: string,
   tx?: typeof sql
-): Promise<VerificationSession | null> => {
+): Promise<boolean> => {
   const query = tx || sql;
-  const [session] = await query<VerificationSession[]>`
-    SELECT 
-      session_uid,
-      external_txn_id,
-      status,
-      created_at,
-      updated_at
-    FROM verification_session
-    WHERE external_txn_id = ${externalTxnId} AND status = ${status}
-    ORDER BY created_at DESC
-    LIMIT 1
+  const [result] = await query<Array<{ exists: boolean }>>`
+    SELECT EXISTS(
+      SELECT 1
+      FROM verification_session
+      WHERE client_name = ${clientName} AND external_txn_id = ${externalTxnId} AND status = ${status}
+    ) as exists
   `;
   
-  return session || null;
+  return result?.exists || false;
 };
 
 /**
@@ -87,6 +86,7 @@ export const getAllSessionsByFilter = async (filter: 'pending' | 'completed' | '
         session_uid,
         external_txn_id,
         status,
+        client_name,
         created_at,
         updated_at
       FROM verification_session
@@ -100,6 +100,7 @@ export const getAllSessionsByFilter = async (filter: 'pending' | 'completed' | '
       session_uid,
       external_txn_id,
       status,
+      client_name,
       created_at,
       updated_at
     FROM verification_session
@@ -127,6 +128,7 @@ export const updateVerificationSessionStatus = async (
       session_uid,
       external_txn_id,
       status,
+      client_name,
       created_at,
       updated_at
   `;

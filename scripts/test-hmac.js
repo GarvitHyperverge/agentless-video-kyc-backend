@@ -11,7 +11,6 @@ const requestBody = {
   "full_name": "GARVIT MANRAL",
   "father_name": "GIRISH MANRAL",
   "date_of_birth": "23-09-2003",
-  "source_party": "CRED"
 };
 
 // Stringify the body (must match server's JSON.stringify)

@@ -17,16 +17,14 @@ export const createBusinessPartnerPanData = async (
       pan_number,
       full_name,
       father_name,
-      date_of_birth,
-      source_party
+      date_of_birth
     )
     VALUES (
       ${data.session_uid},
       ${data.pan_number},
       ${data.full_name},
       ${data.father_name},
-      ${data.date_of_birth},
-      ${data.source_party}
+      ${data.date_of_birth}
     )
     RETURNING 
       id,
@@ -35,7 +33,6 @@ export const createBusinessPartnerPanData = async (
       full_name,
       father_name,
       date_of_birth,
-      source_party,
       created_at
   `;
   
@@ -60,7 +57,6 @@ export const getBusinessPartnerPanDataBySessionUid = async (
       full_name,
       father_name,
       date_of_birth,
-      source_party,
       created_at
     FROM business_partner_pan_data
     WHERE session_uid = ${sessionUid}

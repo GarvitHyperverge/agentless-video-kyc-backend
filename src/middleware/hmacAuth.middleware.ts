@@ -193,6 +193,9 @@ export const hmacAuthMiddleware = async (
       return;
     }
 
+    // Attach API client to request for use in controllers
+    (req as any).apiClient = apiClient;
+
     // Authentication successful
     next();
   } catch (error: any) {

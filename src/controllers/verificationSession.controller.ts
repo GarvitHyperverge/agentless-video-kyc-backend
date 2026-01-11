@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { createVerificationSession as createVerificationSessionService, markVerificationSessionCompleted } from '../services/verificationSession.service';
 import { CreateVerificationSessionRequestDto, VerificationSessionResponseDto, UpdateVerificationSessionStatusRequestDto } from '../dtos/verificationSession.dto';
 import { ApiResponseDto } from '../dtos/apiResponse.dto';
+import { hasVerificationSessionByClientNameExternalTxnIdAndStatus } from '../repositories/verificationSession.repository';
+import { ApiClient } from '../types';
 
 /**
  * Create a new verification session
@@ -10,7 +12,36 @@ import { ApiResponseDto } from '../dtos/apiResponse.dto';
 export const createVerificationSession = async (req: Request, res: Response): Promise<void> => {
   try {
     const dto: CreateVerificationSessionRequestDto = req.body;
-    const session = await createVerificationSessionService(dto);
+    const apiClient = (req as any).apiClient as ApiClient;
+    
+    if (!apiClient) {
+      const response: ApiResponseDto<never> = {
+        success: false,
+        error: 'API client information not found. Ensure HMAC authentication is properly configured.',
+      };
+      res.status(500).json(response);
+      return;
+    }
+
+    const clientName = apiClient.client_name;
+    
+    // Check if a pending session already exists for this client_name and external_txn_id combination
+    const hasPendingSession = await hasVerificationSessionByClientNameExternalTxnIdAndStatus(
+      clientName,
+      dto.external_txn_id,
+      'pending'
+    );
+
+    if (hasPendingSession) {
+      const response: ApiResponseDto<never> = {
+        success: false,
+        error: `A verification session with status PENDING already exists for client_name: ${clientName} and external_txn_id: ${dto.external_txn_id}`,
+      };
+      res.status(400).json(response);
+      return;
+    }
+
+    const session = await createVerificationSessionService(dto, clientName);
     
     const response: ApiResponseDto<VerificationSessionResponseDto> = {
       success: true,
