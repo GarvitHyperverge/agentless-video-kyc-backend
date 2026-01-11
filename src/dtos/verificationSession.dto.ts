@@ -13,6 +13,7 @@ export interface VerificationSessionResponseDto {
   external_txn_id: string;
   status: string;
   client_name: string;
+  audit_status: string;
   created_at: Date;
   updated_at: Date;
 }
@@ -20,4 +21,10 @@ export interface VerificationSessionResponseDto {
 // Update status request DTO
 export interface UpdateVerificationSessionStatusRequestDto {
   session_id: string;
+}
+
+// Update audit status request DTO
+export interface UpdateAuditStatusRequestDto {
+  session_id: string;
+  audit_status: 'pass' | 'fail';
 }

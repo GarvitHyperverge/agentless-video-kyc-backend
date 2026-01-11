@@ -12,13 +12,14 @@ export const createVerificationSession = async (
 ): Promise<VerificationSession> => {
   const query = tx || sql;
   const [session] = await query<VerificationSession[]>`
-    INSERT INTO verification_session (session_uid, external_txn_id, status, client_name)
-    VALUES (${data.session_uid}, ${data.external_txn_id}, ${data.status}, ${data.client_name})
+    INSERT INTO verification_session (session_uid, external_txn_id, status, client_name, audit_status)
+    VALUES (${data.session_uid}, ${data.external_txn_id}, ${data.status}, ${data.client_name}, ${data.audit_status})
     RETURNING 
       session_uid,
       external_txn_id,
       status,
       client_name,
+      audit_status,
       created_at,
       updated_at
   `;
@@ -44,6 +45,7 @@ export const getVerificationSessionByUid = async (
       external_txn_id,
       status,
       client_name,
+      audit_status,
       created_at,
       updated_at
     FROM verification_session
@@ -87,6 +89,7 @@ export const getAllSessionsByFilter = async (filter: 'pending' | 'completed' | '
         external_txn_id,
         status,
         client_name,
+        audit_status,
         created_at,
         updated_at
       FROM verification_session
@@ -101,6 +104,7 @@ export const getAllSessionsByFilter = async (filter: 'pending' | 'completed' | '
       external_txn_id,
       status,
       client_name,
+      audit_status,
       created_at,
       updated_at
     FROM verification_session
@@ -129,6 +133,37 @@ export const updateVerificationSessionStatus = async (
       external_txn_id,
       status,
       client_name,
+      audit_status,
+      created_at,
+      updated_at
+  `;
+  
+  if (!session) {
+    throw new Error('Verification session not found');
+  }
+  
+  return session;
+};
+
+/**
+ * Updates the audit_status of a verification session
+ */
+export const updateVerificationSessionAuditStatus = async (
+  sessionId: string,
+  auditStatus: 'pass' | 'fail',
+  tx?: typeof sql
+): Promise<VerificationSession> => {
+  const query = tx || sql;
+  const [session] = await query<VerificationSession[]>`
+    UPDATE verification_session
+    SET audit_status = ${auditStatus}, updated_at = NOW()
+    WHERE session_uid = ${sessionId}
+    RETURNING 
+      session_uid,
+      external_txn_id,
+      status,
+      client_name,
+      audit_status,
       created_at,
       updated_at
   `;

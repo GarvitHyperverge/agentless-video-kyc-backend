@@ -3,6 +3,7 @@ export interface VerificationSession {
   external_txn_id: string;
   status: string;
   client_name: string;
+  audit_status: string;
   created_at: Date;
   updated_at: Date;
 }
