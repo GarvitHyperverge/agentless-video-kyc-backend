@@ -1,14 +1,9 @@
 import fs from 'fs';
-import https from 'https';
 import FormData from 'form-data';
 import axios from 'axios';
 import { config } from '../config';
+import { httpsAgent } from '../config/hyperverge';
 import { FaceMatchResponseDto } from '../dtos/faceMatch.dto';
-
-// Create https agent that bypasses SSL certificate verification (for development)
-const httpsAgent = new https.Agent({
-  rejectUnauthorized: false,
-});
 
 /**
  * Call HyperVerge API to match faces between selfie and ID card

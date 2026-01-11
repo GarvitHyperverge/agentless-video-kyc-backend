@@ -1,12 +1,7 @@
-import https from 'https';
 import axios from 'axios';
 import { config } from '../config';
+import { httpsAgent } from '../config/hyperverge';
 import { FieldMatchResponseDto } from '../dtos/fieldMatch.dto';
-
-// Create https agent that bypasses SSL certificate verification (for development)
-const httpsAgent = new https.Agent({
-  rejectUnauthorized: false,
-});
 
 /**
  * Compare all fields between extracted data and business partner data

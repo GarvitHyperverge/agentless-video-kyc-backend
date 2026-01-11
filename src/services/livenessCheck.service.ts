@@ -1,14 +1,9 @@
 import fs from 'fs';
-import https from 'https';
 import FormData from 'form-data';
 import axios from 'axios';
 import { config } from '../config';
+import { httpsAgent } from '../config/hyperverge';
 import { LivenessCheckResponseDto } from '../dtos/livenessCheck.dto';
-
-// Create https agent that bypasses SSL certificate verification (for development)
-const httpsAgent = new https.Agent({
-  rejectUnauthorized: false,
-});
 
 /**
  * Call HyperVerge API to check liveness of selfie

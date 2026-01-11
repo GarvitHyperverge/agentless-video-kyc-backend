@@ -16,15 +16,6 @@ export const uploadPanCardImages = async (req: Request, res: Response): Promise<
     const backImage = files?.back_image?.[0];
 
     // Validate required fields
-    if (!session_id) {
-      const response: ApiResponseDto<never> = {
-        success: false,
-        error: 'session_id is required',
-      };
-      res.status(400).json(response);
-      return;
-    }
-
     if (!frontImage || !backImage) {
       const response: ApiResponseDto<never> = {
         success: false,

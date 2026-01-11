@@ -1,9 +1,7 @@
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { supabaseS3 } from '../config/supabase';
-
-const BUCKET_NAME = 'kyc-media';
-const URL_EXPIRY_SECONDS = 3600; // 1 hour
+import { BUCKET_NAME, PRESIGNED_URL_EXPIRY_SECONDS } from '../config/s3';
 
 /**
  * Generate a presigned URL for an S3 object
@@ -21,7 +19,7 @@ export const getPresignedUrl = async (key: string): Promise<string | null> => {
       Key: key,
     });
 
-    const url = await getSignedUrl(supabaseS3, command, { expiresIn: URL_EXPIRY_SECONDS });
+    const url = await getSignedUrl(supabaseS3, command, { expiresIn: PRESIGNED_URL_EXPIRY_SECONDS });
     return url;
   } catch (error: any) {
     console.error(`Error generating presigned URL for key ${key}:`, error);
