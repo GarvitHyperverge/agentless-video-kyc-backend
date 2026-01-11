@@ -26,11 +26,9 @@ async function ensureDirectoryExists(dirPath: string): Promise<void> {
 }
 
 /**
- * Save base64 image to temp file
+ * Save image buffer to temp file
  */
-const saveBase64Image = async (base64Data: string, filename: string): Promise<string> => {
-  const base64Image = base64Data.replace(/^data:image\/\w+;base64,/, '');
-  const buffer = Buffer.from(base64Image, 'base64');
+const saveImageBuffer = async (buffer: Buffer, filename: string): Promise<string> => {
   const filePath = path.join(TEMP_DIR, `temp_${filename}_${Date.now()}.png`);
   await writeFile(filePath, buffer);
   return filePath;
@@ -153,18 +151,20 @@ export const uploadPanCardImages = async (
   }
 
   try {
-    // Decode base64 images
-    const frontBase64Image = dto.front_image.replace(/^data:image\/\w+;base64,/, '');
-    const backBase64Image = dto.back_image.replace(/^data:image\/\w+;base64,/, '');
-    const frontBuffer = Buffer.from(frontBase64Image, 'base64');
-    const backBuffer = Buffer.from(backBase64Image, 'base64');
+    // Get image buffers from multer files
+    const frontBuffer = dto.front_image.buffer;
+    const backBuffer = dto.back_image.buffer;
+    
+    // Get content types from files (default to image/png if not provided)
+    const frontContentType = dto.front_image.mimetype || 'image/png';
+    const backContentType = dto.back_image.mimetype || 'image/png';
 
     // Upload front image
     const frontRawCommand = new PutObjectCommand({
       Bucket: BUCKET_NAME,
       Key: frontRawStorageKey,
       Body: frontBuffer,
-      ContentType: 'image/png',
+      ContentType: frontContentType,
     });
 
     // Upload back image
@@ -172,7 +172,7 @@ export const uploadPanCardImages = async (
       Bucket: BUCKET_NAME,
       Key: backRawStorageKey,
       Body: backBuffer,
-      ContentType: 'image/png',
+      ContentType: backContentType,
     });
 
     await Promise.all([
@@ -187,8 +187,8 @@ export const uploadPanCardImages = async (
   }
 
   // Step 2: Save front and back images to temp folder (for verification)
-  const frontImagePath = await saveBase64Image(dto.front_image, `front_${dto.session_id}`);
-  const backImagePath = await saveBase64Image(dto.back_image, `back_${dto.session_id}`);
+  const frontImagePath = await saveImageBuffer(dto.front_image.buffer, `front_${dto.session_id}`);
+  const backImagePath = await saveImageBuffer(dto.back_image.buffer, `back_${dto.session_id}`);
 
   // Step 3: Verify front image with HyperVerge API (blocking)
   const frontVerification = await verifyIdCard({

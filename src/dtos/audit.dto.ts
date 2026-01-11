@@ -4,6 +4,7 @@ import { CardIdValidation } from '../types/cardIdValidation.types';
 import { FaceMatchResult } from '../types/faceMatchResult.types';
 import { SelfieValidation } from '../types/selfieValidation.types';
 import { SessionMetadata } from '../types/sessionMetadata.types';
+import { VerificationInput } from '../types/verificationInput.types';
 
 // Response DTO for pending sessions list
 export interface PendingSessionsResponseDto {
@@ -19,4 +20,5 @@ export interface SessionDetailsDto {
   faceMatchResult: FaceMatchResult | null;
   selfieValidation: SelfieValidation | null;
   sessionMetadata: SessionMetadata | null;
+  verificationInputs: VerificationInput[];
 }

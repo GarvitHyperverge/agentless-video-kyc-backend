@@ -27,12 +27,9 @@ async function ensureDirectoryExists(dirPath: string): Promise<void> {
 }
 
 /**
- * Save base64 image to temp file
+ * Save image buffer to temp file
  */
-const saveBase64Image = async (base64Data: string, filename: string): Promise<string> => {
-  // Remove data URL prefix if present
-  const base64Image = base64Data.replace(/^data:image\/\w+;base64,/, '');
-  const buffer = Buffer.from(base64Image, 'base64');
+const saveImageBuffer = async (buffer: Buffer, filename: string): Promise<string> => {
   const filePath = path.join(TEMP_DIR, `temp_${filename}_${Date.now()}.png`);
   await writeFile(filePath, buffer);
   return filePath;
@@ -160,15 +157,17 @@ export const uploadSelfie = async (
   }
 
   try {
-    // Decode base64 image
-    const base64Image = dto.image.replace(/^data:image\/\w+;base64,/, '');
-    const buffer = Buffer.from(base64Image, 'base64');
+    // Get image buffer from multer file
+    const buffer = dto.image.buffer;
+    
+    // Get content type from file (default to image/png if not provided)
+    const contentType = dto.image.mimetype || 'image/png';
 
     const rawCommand = new PutObjectCommand({
       Bucket: BUCKET_NAME,
       Key: rawStorageKey,
       Body: buffer,
-      ContentType: 'image/png',
+      ContentType: contentType,
     });
 
     await supabaseS3.send(rawCommand);
@@ -179,7 +178,7 @@ export const uploadSelfie = async (
   }
 
   // Step 2: Save selfie to temp folder (for verification)
-  const selfiePath = await saveBase64Image(dto.image, `selfie_${dto.session_id}`);
+  const selfiePath = await saveImageBuffer(dto.image.buffer, `selfie_${dto.session_id}`);
 
   // Step 3: Check liveness using HyperVerge API (blocking)
   const livenessResult = await checkLiveness(selfiePath, `${dto.session_id}_liveness`);

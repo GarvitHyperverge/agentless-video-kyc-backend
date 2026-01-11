@@ -3,8 +3,8 @@ import { IdCardExtractionResponseDto } from "./idCardExtraction.dto";
 // Request DTO
 export interface PanCardUploadRequestDto {
   session_id: string;
-  front_image: string;
-  back_image: string;
+  front_image: Express.Multer.File;
+  back_image: Express.Multer.File;
 }
 
 // Response DTO

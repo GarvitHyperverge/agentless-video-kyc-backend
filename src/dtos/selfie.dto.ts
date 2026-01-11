@@ -1,7 +1,7 @@
 // Request DTO
 export interface SelfieUploadRequestDto {
   session_id: string;
-  image: string;
+  image: Express.Multer.File;
 }
 
 // Response DTO

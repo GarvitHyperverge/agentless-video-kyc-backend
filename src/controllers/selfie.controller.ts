@@ -5,19 +5,45 @@ import { SelfieUploadRequestDto, SelfieUploadResponseDto } from '../dtos/selfie.
 
 /**
  * Upload selfie
- * POST /api/selfie
+ * POST /api/selfie/upload
  */
 export const uploadSelfie = async (req: Request, res: Response): Promise<void> => {
   try {
-    const dto: SelfieUploadRequestDto = req.body;
-    if (!dto.session_id || !dto.image) {
+    const { session_id } = req.body;
+    const imageFile = req.file;
+
+    // Validate required fields
+    if (!session_id) {
       const response: ApiResponseDto<never> = {
         success: false,
-        error: 'session_id and image are required',
+        error: 'session_id is required',
       };
       res.status(400).json(response);
       return;
     }
+
+    if (!imageFile || !imageFile.buffer) {
+      const response: ApiResponseDto<never> = {
+        success: false,
+        error: 'image file is required',
+      };
+      res.status(400).json(response);
+      return;
+    }
+
+    if (imageFile.buffer.length === 0) {
+      const response: ApiResponseDto<never> = {
+        success: false,
+        error: 'Image file is empty',
+      };
+      res.status(400).json(response);
+      return;
+    }
+
+    const dto: SelfieUploadRequestDto = {
+      session_id,
+      image: imageFile,
+    };
 
     const result = await uploadSelfieService(dto);
 

@@ -9,16 +9,54 @@ import { PanCardUploadRequestDto, PanCardUploadResponseDto } from '../dtos/panCa
  */
 export const uploadPanCardImages = async (req: Request, res: Response): Promise<void> => {
   try {
-    const dto: PanCardUploadRequestDto = req.body;
+    const { session_id } = req.body;
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+    
+    const frontImage = files?.front_image?.[0];
+    const backImage = files?.back_image?.[0];
 
-    if (!dto.session_id || !dto.front_image) {
+    // Validate required fields
+    if (!session_id) {
       const response: ApiResponseDto<never> = {
         success: false,
-        error: 'session_id and front_image are required',
+        error: 'session_id is required',
       };
       res.status(400).json(response);
       return;
     }
+
+    if (!frontImage || !backImage) {
+      const response: ApiResponseDto<never> = {
+        success: false,
+        error: 'front_image and back_image files are required',
+      };
+      res.status(400).json(response);
+      return;
+    }
+
+    if (!frontImage.buffer || frontImage.buffer.length === 0) {
+      const response: ApiResponseDto<never> = {
+        success: false,
+        error: 'front_image file is empty',
+      };
+      res.status(400).json(response);
+      return;
+    }
+
+    if (!backImage.buffer || backImage.buffer.length === 0) {
+      const response: ApiResponseDto<never> = {
+        success: false,
+        error: 'back_image file is empty',
+      };
+      res.status(400).json(response);
+      return;
+    }
+
+    const dto: PanCardUploadRequestDto = {
+      session_id,
+      front_image: frontImage,
+      back_image: backImage,
+    };
 
     const result = await uploadPanCardImagesService(dto);
 

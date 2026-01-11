@@ -4,6 +4,7 @@ import { getCardIdValidationBySessionUid } from '../repositories/cardIdValidatio
 import { getFaceMatchResultBySessionUid } from '../repositories/faceMatchResult.repository';
 import { getSelfieValidationBySessionUid } from '../repositories/selfieValidation.repository';
 import { getSessionMetadataBySessionUid } from '../repositories/sessionMetadata.repository';
+import { getVerificationInputsBySessionUid } from '../repositories/verificationInput.repository';
 import { PendingSessionsResponseDto, SessionDetailsDto } from '../dtos/audit.dto';
 
 /**
@@ -39,12 +40,14 @@ export const getSessionDetails = async (sessionUid: string): Promise<SessionDeta
     faceMatchResult,
     selfieValidation,
     sessionMetadata,
+    verificationInputs,
   ] = await Promise.all([
     getBusinessPartnerPanDataBySessionUid(sessionUid),
     getCardIdValidationBySessionUid(sessionUid),
     getFaceMatchResultBySessionUid(sessionUid),
     getSelfieValidationBySessionUid(sessionUid),
     getSessionMetadataBySessionUid(sessionUid),
+    getVerificationInputsBySessionUid(sessionUid),
   ]);
 
   return {
@@ -54,5 +57,6 @@ export const getSessionDetails = async (sessionUid: string): Promise<SessionDeta
     faceMatchResult,
     selfieValidation,
     sessionMetadata,
+    verificationInputs,
   };
 };
