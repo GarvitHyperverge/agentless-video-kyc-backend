@@ -6,6 +6,7 @@ import { getSelfieValidationBySessionUid } from '../repositories/selfieValidatio
 import { getSessionMetadataBySessionUid } from '../repositories/sessionMetadata.repository';
 import { getVerificationInputsBySessionUid } from '../repositories/verificationInput.repository';
 import { PendingSessionsResponseDto, SessionDetailsDto } from '../dtos/audit.dto';
+import { getPresignedUrl } from '../utils/s3PresignedUrl.util';
 
 /**
  * Get all verification sessions with optional status filter
@@ -50,6 +51,34 @@ export const getSessionDetails = async (sessionUid: string): Promise<SessionDeta
     getVerificationInputsBySessionUid(sessionUid),
   ]);
 
+  // Generate presigned URLs for watermarked media files
+  // These URLs allow temporary access (1 hour expiry) without exposing S3 credentials
+  const [
+    panFrontUrl,
+    panBackUrl,
+    selfieUrl,
+    otpVideoUrl,
+    sessionRecordingUrl,
+  ] = await Promise.all([
+    getPresignedUrl(`${sessionUid}/watermarked/pan_front.png`),
+    getPresignedUrl(`${sessionUid}/watermarked/pan_back.png`),
+    getPresignedUrl(`${sessionUid}/watermarked/selfie.png`),
+    getPresignedUrl(`${sessionUid}/watermarked/otpVideo.webm`),
+    getPresignedUrl(`${sessionUid}/watermarked/sessionRecording.webm`),
+  ]);
+
+  const mediaPaths = {
+    images: {
+      panFront: panFrontUrl,
+      panBack: panBackUrl,
+      selfie: selfieUrl,
+    },
+    videos: {
+      otpVideo: otpVideoUrl,
+      sessionRecording: sessionRecordingUrl,
+    },
+  };
+
   return {
     session,
     businessPartnerPanData,
@@ -58,5 +87,6 @@ export const getSessionDetails = async (sessionUid: string): Promise<SessionDeta
     selfieValidation,
     sessionMetadata,
     verificationInputs,
+    mediaPaths,
   };
 };

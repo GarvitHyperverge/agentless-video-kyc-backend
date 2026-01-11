@@ -12,6 +12,20 @@ export interface PendingSessionsResponseDto {
   total: number;
 }
 
+// Media paths structure - contains presigned URLs for accessing watermarked media files
+// URLs expire after 1 hour for security
+export interface MediaPaths {
+  images: {
+    panFront?: string | null; // Presigned URL for PAN card front image
+    panBack?: string | null; // Presigned URL for PAN card back image
+    selfie?: string | null; // Presigned URL for selfie image
+  };
+  videos: {
+    otpVideo?: string | null; // Presigned URL for OTP video
+    sessionRecording?: string | null; // Presigned URL for session recording video
+  };
+}
+
 // Complete session details DTO
 export interface SessionDetailsDto {
   session: VerificationSession;
@@ -21,4 +35,5 @@ export interface SessionDetailsDto {
   selfieValidation: SelfieValidation | null;
   sessionMetadata: SessionMetadata | null;
   verificationInputs: VerificationInput[];
+  mediaPaths: MediaPaths;
 }
