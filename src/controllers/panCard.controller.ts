@@ -9,7 +9,8 @@ import { PanCardUploadRequestDto, PanCardUploadResponseDto } from '../dtos/panCa
  */
 export const uploadPanCardImages = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { session_id } = req.body;
+    // Get sessionId from JWT middleware (already validated)
+    const sessionId = (req as any).sessionId as string;
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
     
     const frontImage = files?.front_image?.[0];
@@ -44,7 +45,7 @@ export const uploadPanCardImages = async (req: Request, res: Response): Promise<
     }
 
     const dto: PanCardUploadRequestDto = {
-      session_id,
+      session_id: sessionId,
       front_image: frontImage,
       back_image: backImage,
     };

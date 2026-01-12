@@ -8,18 +8,20 @@ import {
   updateVerificationSessionAuditStatus as updateVerificationSessionAuditStatusRepo
 } from '../repositories/verificationSession.repository';
 import { createBusinessPartnerPanData } from '../repositories/businessPartnerPanData.repository';
+import { generateJwt } from '../utils/jwt.util';
 
 /**
  * Create a new verification session with PAN data
  * Uses transaction to ensure both records are created atomically
+ * Returns session with JWT token
  */
-export const createVerificationSession = async (dto: CreateVerificationSessionRequestDto, clientName: string): Promise<VerificationSession> => {
+export const createVerificationSession = async (dto: CreateVerificationSessionRequestDto, clientName: string): Promise<VerificationSession & { token: string }> => {
   const sessionId = uuidv4();
   const status = 'pending';
   const auditStatus = 'pending';
   
-  return await sql.begin(async (tx) => {
-    const session = await createVerificationSessionRepo(
+  const session = await sql.begin(async (tx) => {
+    const sessionData = await createVerificationSessionRepo(
       {
         session_uid: sessionId,
         external_txn_id: dto.external_txn_id,
@@ -41,8 +43,18 @@ export const createVerificationSession = async (dto: CreateVerificationSessionRe
       tx
     );
     
-    return session;
+    return sessionData;
   });
+
+  // Generate JWT token with sessionId and timestamp matching database created_at
+  // Convert database timestamp (Date object) to milliseconds for JWT
+  const sessionTimestamp = session.created_at.getTime();
+  const token = generateJwt(sessionId, sessionTimestamp);
+
+  return {
+    ...session,
+    token,
+  };
 };
 
 /**

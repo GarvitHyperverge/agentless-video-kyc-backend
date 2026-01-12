@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { uploadSessionRecording } from '../controllers/sessionRecording.controller';
-import { validateSessionMiddleware } from '../middleware/validateSession.middleware';
+import { jwtAuthMiddleware } from '../middleware/jwtAuth.middleware';
 import { createVideoUpload } from '../utils/multer.util';
 
 const router = Router();
@@ -20,6 +20,6 @@ const router = Router();
 // Create multer instance for video uploads (100MB limit)
 const upload = createVideoUpload(100 * 1024 * 1024);
 
-router.post('/upload', upload.single('video'), validateSessionMiddleware, uploadSessionRecording);
+router.post('/upload', upload.single('video'), jwtAuthMiddleware, uploadSessionRecording);
 
 export default router;

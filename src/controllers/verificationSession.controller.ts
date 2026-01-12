@@ -1,6 +1,13 @@
 import { Request, Response } from 'express';
 import { createVerificationSession as createVerificationSessionService, markVerificationSessionCompleted, updateVerificationSessionAuditStatus as updateVerificationSessionAuditStatusService } from '../services/verificationSession.service';
-import { CreateVerificationSessionRequestDto, VerificationSessionResponseDto, UpdateVerificationSessionStatusRequestDto, UpdateAuditStatusRequestDto } from '../dtos/verificationSession.dto';
+import { 
+  CreateVerificationSessionRequestDto, 
+  CreateVerificationSessionResponseDto,
+  UpdateVerificationSessionStatusRequestDto,
+  MarkVerificationSessionCompletedResponseDto,
+  UpdateAuditStatusRequestDto,
+  UpdateAuditStatusResponseDto
+} from '../dtos/verificationSession.dto';
 import { ApiResponseDto } from '../dtos/apiResponse.dto';
 import { hasVerificationSessionByClientNameExternalTxnIdAndStatus } from '../repositories/verificationSession.repository';
 import { ApiClient } from '../types';
@@ -41,11 +48,13 @@ export const createVerificationSession = async (req: Request, res: Response): Pr
       return;
     }
 
-    const session = await createVerificationSessionService(dto, clientName);
+    const sessionWithToken = await createVerificationSessionService(dto, clientName);
     
-    const response: ApiResponseDto<VerificationSessionResponseDto> = {
+    const response: ApiResponseDto<CreateVerificationSessionResponseDto> = {
       success: true,
-      data: session,
+      data: {
+        token: sessionWithToken.token,
+      },
     };
     
     res.status(201).json(response);
@@ -77,7 +86,7 @@ export const markVerificationSessionCompletedController = async (req: Request, r
 
     const session = await markVerificationSessionCompleted(dto.session_id);
     
-    const response: ApiResponseDto<VerificationSessionResponseDto> = {
+    const response: ApiResponseDto<MarkVerificationSessionCompletedResponseDto> = {
       success: true,
       data: session,
     };
@@ -120,7 +129,7 @@ export const updateAuditStatus = async (req: Request, res: Response): Promise<vo
 
     const session = await updateVerificationSessionAuditStatusService(dto.session_id, dto.audit_status);
     
-    const response: ApiResponseDto<VerificationSessionResponseDto> = {
+    const response: ApiResponseDto<UpdateAuditStatusResponseDto> = {
       success: true,
       data: session,
     };

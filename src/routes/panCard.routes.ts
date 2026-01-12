@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { uploadPanCardImages } from '../controllers/panCard.controller';
-import { validateSessionMiddleware } from '../middleware/validateSession.middleware';
+import { jwtAuthMiddleware } from '../middleware/jwtAuth.middleware';
 import { createImageUpload } from '../utils/multer.util';
 
 const router = Router();
@@ -11,6 +11,6 @@ const upload = createImageUpload(10 * 1024 * 1024);
 router.post('/', upload.fields([
   { name: 'front_image', maxCount: 1 },
   { name: 'back_image', maxCount: 1 }
-]), validateSessionMiddleware, uploadPanCardImages);
+]), jwtAuthMiddleware, uploadPanCardImages);
 
 export default router;

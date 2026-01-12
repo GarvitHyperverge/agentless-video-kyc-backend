@@ -16,4 +16,5 @@ export const config = {
     s3AccessKey: process.env.SUPABASE_S3_ACCESS_KEY || '',
     s3SecretKey: process.env.SUPABASE_S3_SECRET_KEY || '',
   },
+  jwtSecret: process.env.JWT_SECRET || 'your-secret-key-change-in-production',
 };

@@ -9,7 +9,12 @@ import { ApiResponseDto } from '../dtos/apiResponse.dto';
  */
 export const createSessionMetadata = async (req: Request, res: Response): Promise<void> => {
   try {
-    const dto: CreateSessionMetadataRequestDto = req.body;
+    // Get sessionId from JWT middleware (already validated)
+    const sessionId = (req as any).sessionId as string;
+    const dto: CreateSessionMetadataRequestDto = {
+      ...req.body,
+      session_id: sessionId, // Override session_id from JWT
+    };
     const sessionMetadata = await createSessionMetadataService(dto);
     
     const response: ApiResponseDto<SessionMetadataResponseDto> = {

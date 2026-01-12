@@ -9,19 +9,11 @@ import { SessionRecordingUploadRequestDto, SessionRecordingUploadResponseDto } f
  */
 export const uploadSessionRecording = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { session_id } = req.body;
+    // Get sessionId from JWT middleware (already validated)
+    const sessionId = (req as any).sessionId as string;
     const video = req.file;
 
     // Validate required fields
-    if (!session_id || session_id.trim() === '') {
-      const response: ApiResponseDto<never> = {
-        success: false,
-        error: 'session_id is required',
-      };
-      res.status(400).json(response);
-      return;
-    }
-
     if (!video || !video.buffer) {
       const response: ApiResponseDto<never> = {
         success: false,
@@ -41,7 +33,7 @@ export const uploadSessionRecording = async (req: Request, res: Response): Promi
     }
 
     const dto: SessionRecordingUploadRequestDto = {
-      session_id,
+      session_id: sessionId,
       video,
     };
 

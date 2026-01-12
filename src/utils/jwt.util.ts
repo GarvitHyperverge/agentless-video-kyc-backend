@@ -1,0 +1,44 @@
+import jwt from 'jsonwebtoken';
+import { config } from '../config';
+
+/**
+ * JWT Payload interface
+ */
+export interface JwtPayload {
+  sessionId: string;
+  timestamp: number;
+}
+
+/**
+ * Generate JWT token with sessionId and timestamp
+ * @param sessionId - Session unique identifier
+ * @param timestamp - Optional timestamp (in milliseconds). If not provided, uses current time.
+ *                    Use this to ensure JWT timestamp matches database created_at timestamp.
+ * @returns JWT token string
+ */
+export const generateJwt = (sessionId: string, timestamp?: number): string => {
+  const payload: JwtPayload = {
+    sessionId,
+    timestamp: timestamp || Date.now(),
+  };
+
+  const token = jwt.sign(payload, config.jwtSecret, {
+    expiresIn: '15m', // Token expires in 15 minutes
+  });
+
+  return token;
+};
+
+/**
+ * Verify and decode JWT token
+ * @param token - JWT token string
+ * @returns Decoded JWT payload or null if invalid
+ */
+export const verifyJwt = (token: string): JwtPayload | null => {
+  try {
+    const decoded = jwt.verify(token, config.jwtSecret) as JwtPayload;
+    return decoded;
+  } catch (error) {
+    return null;
+  }
+};

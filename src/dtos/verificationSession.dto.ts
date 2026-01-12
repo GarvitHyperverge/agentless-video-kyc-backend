@@ -1,4 +1,4 @@
-// Request DTO
+// Request DTOs
 export interface CreateVerificationSessionRequestDto {
   external_txn_id: string;
   pan_number: string;
@@ -7,8 +7,21 @@ export interface CreateVerificationSessionRequestDto {
   date_of_birth: string;
 }
 
-// Response DTO
-export interface VerificationSessionResponseDto {
+export interface UpdateVerificationSessionStatusRequestDto {
+  session_id: string;
+}
+
+export interface UpdateAuditStatusRequestDto {
+  session_id: string;
+  audit_status: 'pass' | 'fail';
+}
+
+// Response DTOs
+export interface CreateVerificationSessionResponseDto {
+  token: string; // JWT token 
+}
+
+export interface MarkVerificationSessionCompletedResponseDto {
   session_uid: string;
   external_txn_id: string;
   status: string;
@@ -18,13 +31,12 @@ export interface VerificationSessionResponseDto {
   updated_at: Date;
 }
 
-// Update status request DTO
-export interface UpdateVerificationSessionStatusRequestDto {
-  session_id: string;
-}
-
-// Update audit status request DTO
-export interface UpdateAuditStatusRequestDto {
-  session_id: string;
-  audit_status: 'pass' | 'fail';
+export interface UpdateAuditStatusResponseDto {
+  session_uid: string;
+  external_txn_id: string;
+  status: string;
+  client_name: string;
+  audit_status: string;
+  created_at: Date;
+  updated_at: Date;
 }

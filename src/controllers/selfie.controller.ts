@@ -9,19 +9,11 @@ import { SelfieUploadRequestDto, SelfieUploadResponseDto } from '../dtos/selfie.
  */
 export const uploadSelfie = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { session_id } = req.body;
+    // Get sessionId from JWT middleware (already validated)
+    const sessionId = (req as any).sessionId as string;
     const imageFile = req.file;
 
     // Validate required fields
-    if (!session_id) {
-      const response: ApiResponseDto<never> = {
-        success: false,
-        error: 'session_id is required',
-      };
-      res.status(400).json(response);
-      return;
-    }
-
     if (!imageFile || !imageFile.buffer) {
       const response: ApiResponseDto<never> = {
         success: false,
@@ -41,7 +33,7 @@ export const uploadSelfie = async (req: Request, res: Response): Promise<void> =
     }
 
     const dto: SelfieUploadRequestDto = {
-      session_id,
+      session_id: sessionId,
       image: imageFile,
     };
 

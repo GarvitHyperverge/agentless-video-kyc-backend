@@ -9,19 +9,12 @@ import { OtpVideoUploadRequestDto, OtpVideoUploadResponseDto } from '../dtos/otp
  */
 export const uploadOtpVideo = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { session_id, otp } = req.body;
+    // Get sessionId from JWT middleware (already validated)
+    const sessionId = (req as any).sessionId as string;
+    const { otp } = req.body;
     const video = req.file;
 
     // Validate required fields
-    if (!session_id) {
-      const response: ApiResponseDto<never> = {
-        success: false,
-        error: 'session_id is required',
-      };
-      res.status(400).json(response);
-      return;
-    }
-
     if (!otp || otp.trim() === '') {
       const response: ApiResponseDto<never> = {
         success: false,
@@ -50,7 +43,7 @@ export const uploadOtpVideo = async (req: Request, res: Response): Promise<void>
     }
 
     const dto: OtpVideoUploadRequestDto = {
-      session_id,
+      session_id: sessionId,
       otp,
       video,
     };
