@@ -8,11 +8,11 @@ export interface CreateVerificationSessionRequestDto {
 }
 
 export interface UpdateVerificationSessionStatusRequestDto {
-  session_id: string;
+  // session_id is extracted from JWT token, not needed in request body
 }
 
 export interface UpdateAuditStatusRequestDto {
-  session_id: string;
+  // session_id is extracted from JWT token, not needed in request body
   audit_status: 'pass' | 'fail';
 }
 

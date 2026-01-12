@@ -73,18 +73,10 @@ export const createVerificationSession = async (req: Request, res: Response): Pr
  */
 export const markVerificationSessionCompletedController = async (req: Request, res: Response): Promise<void> => {
   try {
-    const dto: UpdateVerificationSessionStatusRequestDto = req.body;
-    
-    if (!dto.session_id) {
-      const response: ApiResponseDto<never> = {
-        success: false,
-        error: 'session_id is required',
-      };
-      res.status(400).json(response);
-      return;
-    }
+    // Get sessionId from JWT middleware (already validated)
+    const sessionId = (req as any).sessionId as string;
 
-    const session = await markVerificationSessionCompleted(dto.session_id);
+    const session = await markVerificationSessionCompleted(sessionId);
     
     const response: ApiResponseDto<MarkVerificationSessionCompletedResponseDto> = {
       success: true,
@@ -107,16 +99,9 @@ export const markVerificationSessionCompletedController = async (req: Request, r
  */
 export const updateAuditStatus = async (req: Request, res: Response): Promise<void> => {
   try {
+    // Get sessionId from JWT middleware (already validated)
+    const sessionId = (req as any).sessionId as string;
     const dto: UpdateAuditStatusRequestDto = req.body;
-    
-    if (!dto.session_id) {
-      const response: ApiResponseDto<never> = {
-        success: false,
-        error: 'session_id is required',
-      };
-      res.status(400).json(response);
-      return;
-    }
 
     if (!dto.audit_status || (dto.audit_status !== 'pass' && dto.audit_status !== 'fail')) {
       const response: ApiResponseDto<never> = {
@@ -127,7 +112,7 @@ export const updateAuditStatus = async (req: Request, res: Response): Promise<vo
       return;
     }
 
-    const session = await updateVerificationSessionAuditStatusService(dto.session_id, dto.audit_status);
+    const session = await updateVerificationSessionAuditStatusService(sessionId, dto.audit_status);
     
     const response: ApiResponseDto<UpdateAuditStatusResponseDto> = {
       success: true,
