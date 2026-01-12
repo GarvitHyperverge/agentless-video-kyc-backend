@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { verifyJwt } from '../utils/jwt.util';
-import { getVerificationSessionByUid } from '../repositories/verificationSession.repository';
+import jwt from 'jsonwebtoken';
+import { verifyJwt, JwtPayload } from '../utils/jwt.util';
+import { getVerificationSessionByUid, updateVerificationSessionStatus } from '../repositories/verificationSession.repository';
 import { ApiResponseDto } from '../dtos/apiResponse.dto';
 
 /**
@@ -65,10 +66,47 @@ export const jwtAuthMiddleware = async (
     }
 
     // Verify JWT token
-    const payload = verifyJwt(token);
+    let payload: JwtPayload | null;
+    let isExpired = false;
+    
+    try {
+      payload = verifyJwt(token);
+    } catch (error: any) {
+      if (error.message === 'TOKEN_EXPIRED') {
+        isExpired = true;
+        payload = null;
+      } else {
+        sendAuthError(res, 'Invalid JWT token');
+        return;
+      }
+    }
+
+    // If token is expired, try to extract sessionId and update session status
+    if (isExpired) {
+      try {
+        // Decode without verification to get sessionId from expired token
+        const decoded = jwt.decode(token) as { sessionId?: string } | null;
+        
+        if (decoded && decoded.sessionId) {
+          // Check if session exists and is still pending
+          const session = await getVerificationSessionByUid(decoded.sessionId);
+          
+          if (session && session.status === 'pending') {
+            // Update status to incomplete
+            await updateVerificationSessionStatus(decoded.sessionId, 'incomplete');
+            console.log(`Session ${decoded.sessionId} marked as incomplete due to token expiration`);
+          }
+        }
+      } catch (updateError) {
+        console.error('Error updating session status on token expiration:', updateError);
+      }
+      
+      sendAuthError(res, 'JWT token has expired. Session marked as incomplete.');
+      return;
+    }
 
     if (!payload) {
-      sendAuthError(res, 'Invalid or expired JWT token');
+      sendAuthError(res, 'Invalid JWT token');
       return;
     }
 

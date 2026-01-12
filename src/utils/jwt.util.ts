@@ -33,12 +33,17 @@ export const generateJwt = (sessionId: string, timestamp?: number): string => {
  * Verify and decode JWT token
  * @param token - JWT token string
  * @returns Decoded JWT payload or null if invalid
+ * @throws Error with message 'TOKEN_EXPIRED' if token is expired
  */
 export const verifyJwt = (token: string): JwtPayload | null => {
   try {
     const decoded = jwt.verify(token, config.jwtSecret) as JwtPayload;
     return decoded;
-  } catch (error) {
+  } catch (error: any) {
+    // Check if token is expired specifically
+    if (error.name === 'TokenExpiredError') {
+      throw new Error('TOKEN_EXPIRED'); // Special error for expiration
+    }
     return null;
   }
 };
