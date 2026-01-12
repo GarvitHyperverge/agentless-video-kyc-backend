@@ -9,7 +9,7 @@ import { SessionRecordingUploadRequestDto, SessionRecordingUploadResponseDto } f
  */
 export const uploadSessionRecording = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { session_id, latitude, longitude } = req.body;
+    const { session_id } = req.body;
     const video = req.file;
 
     // Validate required fields
@@ -17,15 +17,6 @@ export const uploadSessionRecording = async (req: Request, res: Response): Promi
       const response: ApiResponseDto<never> = {
         success: false,
         error: 'session_id is required',
-      };
-      res.status(400).json(response);
-      return;
-    }
-
-    if (!latitude || !longitude) {
-      const response: ApiResponseDto<never> = {
-        success: false,
-        error: 'latitude and longitude are required',
       };
       res.status(400).json(response);
       return;
@@ -51,8 +42,6 @@ export const uploadSessionRecording = async (req: Request, res: Response): Promi
 
     const dto: SessionRecordingUploadRequestDto = {
       session_id,
-      latitude,
-      longitude,
       video,
     };
 

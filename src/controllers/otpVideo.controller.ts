@@ -9,7 +9,7 @@ import { OtpVideoUploadRequestDto, OtpVideoUploadResponseDto } from '../dtos/otp
  */
 export const uploadOtpVideo = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { session_id, otp, latitude, longitude } = req.body;
+    const { session_id, otp } = req.body;
     const video = req.file;
 
     // Validate required fields
@@ -26,15 +26,6 @@ export const uploadOtpVideo = async (req: Request, res: Response): Promise<void>
       const response: ApiResponseDto<never> = {
         success: false,
         error: 'otp is required',
-      };
-      res.status(400).json(response);
-      return;
-    }
-
-    if (!latitude || !longitude) {
-      const response: ApiResponseDto<never> = {
-        success: false,
-        error: 'latitude and longitude are required',
       };
       res.status(400).json(response);
       return;
@@ -61,8 +52,6 @@ export const uploadOtpVideo = async (req: Request, res: Response): Promise<void>
     const dto: OtpVideoUploadRequestDto = {
       session_id,
       otp,
-      latitude,
-      longitude,
       video,
     };
 

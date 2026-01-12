@@ -2,8 +2,6 @@
 export interface OtpVideoUploadRequestDto {
   session_id: string;
   otp: string;
-  latitude: string;
-  longitude: string;
   video: Express.Multer.File;
 }
 
