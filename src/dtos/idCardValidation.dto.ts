@@ -2,7 +2,7 @@ import { DocumentSide, DocumentType } from "../types";
 
 // Request DTO 
 export interface VerifyIdCardRequestDto {
-  imagePath: string;
+  imageBuffer: Buffer;
   transactionId: string;
   countryId: string;
   documentId: DocumentType;

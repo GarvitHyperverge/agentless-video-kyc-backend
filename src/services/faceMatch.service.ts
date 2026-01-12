@@ -1,4 +1,3 @@
-import fs from 'fs';
 import FormData from 'form-data';
 import axios from 'axios';
 import { config } from '../config';
@@ -7,16 +6,17 @@ import { FaceMatchResponseDto } from '../dtos/faceMatch.dto';
 
 /**
  * Call HyperVerge API to match faces between selfie and ID card
+ * Accepts buffers directly instead of file paths for better performance
  */
 export const matchFace = async (
-  selfieImagePath: string,
-  idCardImagePath: string,
+  selfieBuffer: Buffer,
+  idCardBuffer: Buffer,
   transactionId: string
 ): Promise<FaceMatchResponseDto> => {
   try {
     const formData = new FormData();
-    formData.append('selfie', fs.createReadStream(selfieImagePath));
-    formData.append('id', fs.createReadStream(idCardImagePath));
+    formData.append('selfie', selfieBuffer, { filename: 'selfie.png' });
+    formData.append('id', idCardBuffer, { filename: 'id_card.png' });
 
     const apiUrl = `${config.hyperverge.baseUrl}/v1/matchFace`;
     console.log('[matchFace] API URL:', apiUrl);

@@ -177,11 +177,6 @@ export const hmacAuthMiddleware = async (
     // Note: api_secret_hash column stores the actual secret
     const apiSecret = apiClient.api_secret_hash;
 
-    // Validate timestamp
-    if (!validateTimestamp(headers.timestamp, res)) {
-      return;
-    }
-
     // Get request body as string
     const requestBody = JSON.stringify(req.body);
 
@@ -190,6 +185,11 @@ export const hmacAuthMiddleware = async (
 
     // Validate HMAC signature
     if (!validateHmacSignature(headers.hmacSignature, expectedHmac, res)) {
+      return;
+    }
+
+    // Validate timestamp
+    if (!validateTimestamp(headers.timestamp, res)) {
       return;
     }
 

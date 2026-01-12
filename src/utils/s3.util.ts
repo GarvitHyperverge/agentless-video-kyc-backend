@@ -1,11 +1,7 @@
 import { PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { supabaseS3 } from '../config/supabase';
 import { BUCKET_NAME } from '../config/s3';
-import { promisify } from 'util';
-import fs from 'fs';
 import { Readable } from 'stream';
-
-const writeFile = promisify(fs.writeFile);
 
 /**
  * Upload buffers to S3 in parallel
@@ -41,12 +37,12 @@ export const uploadBuffersToS3 = async (
 };
 
 /**
- * Download file from S3 to local file path
+ * Download file from S3 as buffer (in-memory, no temp file)
  * @param key - S3 object key (path)
- * @param outputPath - Local file path where the downloaded file will be saved
+ * @returns Buffer containing the file data
  * @throws Error if S3 is not configured or download fails
  */
-export const downloadFromS3 = async (key: string, outputPath: string): Promise<void> => {
+export const downloadBufferFromS3 = async (key: string): Promise<Buffer> => {
   if (!supabaseS3) {
     throw new Error('S3 client not configured');
   }
@@ -62,7 +58,7 @@ export const downloadFromS3 = async (key: string, outputPath: string): Promise<v
     throw new Error(`Failed to download file from S3: ${key}`);
   }
 
-  // Convert stream to buffer and write to file
+  // Convert stream to buffer
   const stream = response.Body as Readable;
   const chunks: Buffer[] = [];
   
@@ -70,6 +66,5 @@ export const downloadFromS3 = async (key: string, outputPath: string): Promise<v
     chunks.push(Buffer.from(chunk));
   }
   
-  const buffer = Buffer.concat(chunks);
-  await writeFile(outputPath, buffer);
+  return Buffer.concat(chunks);
 };

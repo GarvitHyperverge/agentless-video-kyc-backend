@@ -26,12 +26,3 @@ export const getPresignedUrl = async (key: string): Promise<string | null> => {
     return null;
   }
 };
-
-/**
- * Generate presigned URLs for multiple S3 objects in parallel
- * @param keys - Array of S3 object keys (paths)
- * @returns Array of presigned URLs (null for failed generations)
- */
-export const getPresignedUrls = async (keys: string[]): Promise<(string | null)[]> => {
-  return Promise.all(keys.map(key => getPresignedUrl(key)));
-};

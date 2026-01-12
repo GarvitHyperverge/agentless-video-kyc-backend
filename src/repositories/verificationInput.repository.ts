@@ -52,26 +52,3 @@ export const getVerificationInputsBySessionUid = async (
   return inputs || [];
 };
 
-/**
- * Gets verification inputs by session_uid and input_type
- */
-export const getVerificationInputsBySessionUidAndType = async (
-  sessionUid: string,
-  inputType: string,
-  tx?: typeof sql
-): Promise<VerificationInput[]> => {
-  const query = tx || sql;
-  const inputs = await query<VerificationInput[]>`
-    SELECT 
-      id,
-      session_uid,
-      input_type,
-      input_value,
-      created_at
-    FROM verification_inputs
-    WHERE session_uid = ${sessionUid} AND input_type = ${inputType}
-    ORDER BY created_at ASC
-  `;
-  
-  return inputs || [];
-};

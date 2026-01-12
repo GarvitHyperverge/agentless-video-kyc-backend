@@ -56,25 +56,33 @@ export const getVerificationSessionByUid = async (
 };
 
 /**
- * Checks if a verification session exists by client_name, external_txn_id and status
- * Returns true if a session exists, false otherwise
+ * Gets a pending verification session by client_name and external_txn_id
+ * Returns the session if found, null otherwise
  */
-export const hasVerificationSessionByClientNameExternalTxnIdAndStatus = async (
+export const getPendingSessionByClientNameAndExternalTxnId = async (
   clientName: string,
   externalTxnId: string,
-  status: string,
   tx?: typeof sql
-): Promise<boolean> => {
+): Promise<VerificationSession | null> => {
   const query = tx || sql;
-  const [result] = await query<Array<{ exists: boolean }>>`
-    SELECT EXISTS(
-      SELECT 1
-      FROM verification_session
-      WHERE client_name = ${clientName} AND external_txn_id = ${externalTxnId} AND status = ${status}
-    ) as exists
+  const [session] = await query<VerificationSession[]>`
+    SELECT 
+      session_uid,
+      external_txn_id,
+      status,
+      client_name,
+      audit_status,
+      created_at,
+      updated_at
+    FROM verification_session
+    WHERE client_name = ${clientName} 
+      AND external_txn_id = ${externalTxnId} 
+      AND status = 'pending'
+    ORDER BY created_at DESC
+    LIMIT 1
   `;
   
-  return result?.exists || false;
+  return session || null;
 };
 
 /**

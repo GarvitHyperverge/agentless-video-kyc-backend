@@ -9,7 +9,6 @@ import {
   UpdateAuditStatusResponseDto
 } from '../dtos/verificationSession.dto';
 import { ApiResponseDto } from '../dtos/apiResponse.dto';
-import { hasVerificationSessionByClientNameExternalTxnIdAndStatus } from '../repositories/verificationSession.repository';
 import { ApiClient } from '../types';
 
 /**
@@ -32,22 +31,7 @@ export const createVerificationSession = async (req: Request, res: Response): Pr
 
     const clientName = apiClient.client_name;
     
-    // Check if a pending session already exists for this client_name and external_txn_id combination
-    const hasPendingSession = await hasVerificationSessionByClientNameExternalTxnIdAndStatus(
-      clientName,
-      dto.external_txn_id,
-      'pending'
-    );
-
-    if (hasPendingSession) {
-      const response: ApiResponseDto<never> = {
-        success: false,
-        error: `A verification session with status PENDING already exists for client_name: ${clientName} and external_txn_id: ${dto.external_txn_id}`,
-      };
-      res.status(400).json(response);
-      return;
-    }
-
+    // The service will handle checking for existing pending sessions and expiration logic
     const sessionWithToken = await createVerificationSessionService(dto, clientName);
     
     const response: ApiResponseDto<CreateVerificationSessionResponseDto> = {

@@ -1,4 +1,3 @@
-import fs from 'fs';
 import FormData from 'form-data';
 import axios from 'axios';
 import { config } from '../config';
@@ -8,9 +7,10 @@ import { IdCardExtractionResponseDto } from '../dtos/idCardExtraction.dto';
 
 /**
  * Call HyperVerge API to verify an ID card image
+ * Accepts buffer directly instead of file path for better performance
  */
 export const verifyIdCard = async ({
-  imagePath,
+  imageBuffer,
   transactionId,
   countryId,
   documentId,
@@ -18,7 +18,7 @@ export const verifyIdCard = async ({
 }: VerifyIdCardRequestDto): Promise<IdCardExtractionResponseDto> => {
   try {
     const formData = new FormData();
-    formData.append('image', fs.createReadStream(imagePath));
+    formData.append('image', imageBuffer, { filename: 'id_card.png' });
     formData.append('countryId', countryId);
     formData.append('documentId', documentId);
     formData.append('expectedDocumentSide', expectedDocumentSide);

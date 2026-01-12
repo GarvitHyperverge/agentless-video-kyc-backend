@@ -12,7 +12,7 @@ export interface PendingSessionsResponseDto {
   total: number;
 }
 
-// Media paths structure - contains presigned URLs for accessing watermarked media files
+// Media paths structure - contains presigned URLs for accessing raw media files
 // URLs expire after 1 hour for security
 export interface MediaPaths {
   images: {

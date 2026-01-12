@@ -51,7 +51,7 @@ export const getSessionDetails = async (sessionUid: string): Promise<SessionDeta
     getVerificationInputsBySessionUid(sessionUid),
   ]);
 
-  // Generate presigned URLs for watermarked media files
+  // Generate presigned URLs for media files (already watermarked by frontend)
   // These URLs allow temporary access (1 hour expiry) without exposing S3 credentials
   const [
     panFrontUrl,
@@ -60,11 +60,11 @@ export const getSessionDetails = async (sessionUid: string): Promise<SessionDeta
     otpVideoUrl,
     sessionRecordingUrl,
   ] = await Promise.all([
-    getPresignedUrl(`${sessionUid}/watermarked/pan_front.png`),
-    getPresignedUrl(`${sessionUid}/watermarked/pan_back.png`),
-    getPresignedUrl(`${sessionUid}/watermarked/selfie.png`),
-    getPresignedUrl(`${sessionUid}/watermarked/otpVideo.webm`),
-    getPresignedUrl(`${sessionUid}/watermarked/sessionRecording.webm`),
+    getPresignedUrl(`${sessionUid}/pan_front.png`),
+    getPresignedUrl(`${sessionUid}/pan_back.png`),
+    getPresignedUrl(`${sessionUid}/selfie.png`),
+    getPresignedUrl(`${sessionUid}/otpVideo.webm`),
+    getPresignedUrl(`${sessionUid}/sessionRecording.webm`),
   ]);
 
   const mediaPaths = {

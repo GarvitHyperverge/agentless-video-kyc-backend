@@ -1,4 +1,3 @@
-import fs from 'fs';
 import FormData from 'form-data';
 import axios from 'axios';
 import { config } from '../config';
@@ -7,14 +6,15 @@ import { LivenessCheckResponseDto } from '../dtos/livenessCheck.dto';
 
 /**
  * Call HyperVerge API to check liveness of selfie
+ * Accepts buffer directly instead of file path for better performance
  */
 export const checkLiveness = async (
-  imagePath: string,
+  imageBuffer: Buffer,
   transactionId: string
 ): Promise<LivenessCheckResponseDto> => {
   try {
     const formData = new FormData();
-    formData.append('image', fs.createReadStream(imagePath));
+    formData.append('image', imageBuffer, { filename: 'selfie.png' });
     formData.append('returnCroppedImageURL', 'yes');
 
     const apiUrl = `${config.hyperverge.baseUrl}/v1/checkLiveness`;
