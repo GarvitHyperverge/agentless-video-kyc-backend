@@ -11,7 +11,7 @@ router.post('/', hmacAuthMiddleware, createVerificationSession);
 // Mark verification session as completed (requires JWT)
 router.patch('/complete', jwtAuthMiddleware, markVerificationSessionCompletedController);
 
-// Update verification session audit_status (requires JWT)
-router.patch('/audit-status', jwtAuthMiddleware, updateAuditStatus);
+// Update verification session audit_status
+router.patch('/audit-status', updateAuditStatus);
 
 export default router;
