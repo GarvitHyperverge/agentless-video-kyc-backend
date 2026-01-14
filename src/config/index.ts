@@ -22,4 +22,8 @@ export const config = {
     port: parseInt(process.env.VOSK_PORT || '2700', 10),
     protocol: process.env.VOSK_PROTOCOL || 'ws',
   },
+  openai: {
+    apiKey: process.env.OPENAI_API_KEY || '',
+    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+  },
 };
