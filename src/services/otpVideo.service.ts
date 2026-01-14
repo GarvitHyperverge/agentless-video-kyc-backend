@@ -29,24 +29,11 @@ export async function uploadOtpVideo(
       throw new Error('No audio data extracted from video');
     }
     
-    // Check minimum audio length (at least 0.1 seconds = 3200 bytes at 16kHz mono 16-bit)
-    const minAudioBytes = 3200;
-    if (audioBuffer.length < minAudioBytes) {
-      console.warn(`Audio buffer too small: ${audioBuffer.length} bytes (minimum: ${minAudioBytes})`);
-      throw new Error(`Audio too short: ${audioBuffer.length} bytes`);
-    }
-    
-    console.log(`Audio extracted: ${audioBuffer.length} bytes (~${(audioBuffer.length / 32000).toFixed(2)}s)`);
     console.log(`Transcribing audio with Vosk for session: ${dto.session_id}`);
-    const transcriptionResult = await transcribeAudio(audioBuffer, {
-      sampleRate: 16000,
-      words: false, // We only need the text, not word-level timestamps
-    });
+    const transcriptionResult = await transcribeAudio(audioBuffer);
     
-    const transcribedText = transcriptionResult.text || transcriptionResult.partial;
-    console.log('=== TRANSCRIBED TEXT FROM VIDEO ===');
-    console.log(transcribedText);
-    console.log('===================================');
+    const transcribedText = transcriptionResult.text;
+    console.log(`Transcribed text: ${transcribedText}`);
   } catch (transcriptionError: any) {
     // Log error but don't fail the request - video upload can still succeed
     console.error('Error transcribing audio with Vosk:', transcriptionError);
