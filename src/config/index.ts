@@ -17,4 +17,9 @@ export const config = {
     s3SecretKey: process.env.SUPABASE_S3_SECRET_KEY || '',
   },
   jwtSecret: process.env.JWT_SECRET || 'your-secret-key-change-in-production',
+  vosk: {
+    host: process.env.VOSK_HOST || '127.0.0.1', // Use 127.0.0.1 instead of localhost to avoid IPv6 resolution issues on macOS
+    port: parseInt(process.env.VOSK_PORT || '2700', 10),
+    protocol: process.env.VOSK_PROTOCOL || 'ws',
+  },
 };

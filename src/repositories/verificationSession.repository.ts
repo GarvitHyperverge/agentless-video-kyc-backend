@@ -2,13 +2,17 @@ import sql from '../config/supabase';
 import { VerificationSessionModel } from '../models';
 import { VerificationSession } from '../types';
 
+// Type for transaction - accepts both Sql and TransactionSql
+// Using 'any' to avoid complex type inference issues with postgres transactions
+type SqlOrTransaction = typeof sql | any;
+
 /**
  * Creates a new verification session in the database
  * Note: created_at and updated_at are automatically set by the database
  */
 export const createVerificationSession = async (
   data: Omit<VerificationSessionModel, 'created_at' | 'updated_at'>,
-  tx?: typeof sql
+  tx?: SqlOrTransaction
 ): Promise<VerificationSession> => {
   const query = tx || sql;
   const [session] = await query<VerificationSession[]>`
@@ -36,7 +40,7 @@ export const createVerificationSession = async (
  */
 export const getVerificationSessionByUid = async (
   sessionUid: string,
-  tx?: typeof sql
+  tx?: SqlOrTransaction
 ): Promise<VerificationSession | null> => {
   const query = tx || sql;
   const [session] = await query<VerificationSession[]>`
@@ -62,7 +66,7 @@ export const getVerificationSessionByUid = async (
 export const getPendingSessionByClientNameAndExternalTxnId = async (
   clientName: string,
   externalTxnId: string,
-  tx?: typeof sql
+  tx?: SqlOrTransaction
 ): Promise<VerificationSession | null> => {
   const query = tx || sql;
   const [session] = await query<VerificationSession[]>`
@@ -129,7 +133,7 @@ export const getAllSessionsByFilter = async (filter: 'pending' | 'completed' | '
 export const updateVerificationSessionStatus = async (
   sessionId: string,
   status: string,
-  tx?: typeof sql
+  tx?: SqlOrTransaction
 ): Promise<VerificationSession> => {
   const query = tx || sql;
   const [session] = await query<VerificationSession[]>`
@@ -159,7 +163,7 @@ export const updateVerificationSessionStatus = async (
 export const updateVerificationSessionAuditStatus = async (
   sessionId: string,
   auditStatus: 'pass' | 'fail',
-  tx?: typeof sql
+  tx?: SqlOrTransaction
 ): Promise<VerificationSession> => {
   const query = tx || sql;
   const [session] = await query<VerificationSession[]>`

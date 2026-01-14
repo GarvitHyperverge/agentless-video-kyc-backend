@@ -2,13 +2,17 @@ import sql from '../config/supabase';
 import { BusinessPartnerPanDataModel } from '../models';
 import { BusinessPartnerPanData } from '../types';
 
+// Type for transaction - accepts both Sql and TransactionSql
+// Using 'any' to avoid complex type inference issues with postgres transactions
+type SqlOrTransaction = typeof sql | any;
+
 /**
  * Creates business partner PAN data in the database
  * Note: id, and created_at are automatically set by the database
  */
 export const createBusinessPartnerPanData = async (
   data: Omit<BusinessPartnerPanDataModel, 'id' | 'created_at'>,
-  tx?: typeof sql
+  tx?: SqlOrTransaction
 ): Promise<BusinessPartnerPanData> => {
   const query = tx || sql;
   const [panData] = await query<BusinessPartnerPanData[]>`

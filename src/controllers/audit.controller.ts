@@ -46,8 +46,11 @@ export const getPendingSessions = async (req: Request, res: Response): Promise<v
 export const getSessionDetailsController = async (req: Request, res: Response): Promise<void> => {
   try {
     const { sessionUid } = req.params;
+    
+    // Ensure sessionUid is a string (Express params can be string | string[])
+    const sessionUidString = Array.isArray(sessionUid) ? sessionUid[0] : sessionUid;
 
-    if (!sessionUid) {
+    if (!sessionUidString) {
       const response: ApiResponseDto<never> = {
         success: false,
         error: 'Session UID is required',
@@ -56,7 +59,7 @@ export const getSessionDetailsController = async (req: Request, res: Response): 
       return;
     }
 
-    const sessionDetails = await getSessionDetails(sessionUid);
+    const sessionDetails = await getSessionDetails(sessionUidString);
 
     if (!sessionDetails) {
       const response: ApiResponseDto<never> = {

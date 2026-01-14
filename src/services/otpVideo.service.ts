@@ -1,12 +1,16 @@
 import { OtpVideoUploadRequestDto, OtpVideoUploadResponseDto } from '../dtos/otpVideo.dto';
 import { createVerificationInput } from '../repositories/verificationInput.repository';
 import { uploadBuffersToS3 } from '../utils/s3.util';
+import { extractAudioFromVideo } from '../utils/audio.util';
+import { transcribeAudio } from './vosk.service';
+
 /**
  * Upload OTP video
  * Flow:
- * 1. Upload video to S3 
- * 2. Store OTP in database
- * 3. Return success to frontend immediately
+ * 1. Extract audio from video and transcribe using Vosk
+ * 2. Upload video to S3 
+ * 3. Store OTP in database
+ * 4. Return success to frontend 
  */
 export async function uploadOtpVideo(
   dto: OtpVideoUploadRequestDto
@@ -14,7 +18,42 @@ export async function uploadOtpVideo(
   // S3 storage keys
   const videoStorageKey = `${dto.session_id}/otpVideo.webm`;
 
-  // Step 1: Upload video to S3 (must succeed before continuing)
+  // Step 1: Extract audio from video and transcribe using Vosk
+  try {
+    console.log(`Extracting audio from video for session: ${dto.session_id}`);
+    const audioBuffer = await extractAudioFromVideo(dto.video.buffer);
+    
+    // Validate audio buffer
+    if (!audioBuffer || audioBuffer.length === 0) {
+      console.warn('No audio extracted from video - video may have no audio track');
+      throw new Error('No audio data extracted from video');
+    }
+    
+    // Check minimum audio length (at least 0.1 seconds = 3200 bytes at 16kHz mono 16-bit)
+    const minAudioBytes = 3200;
+    if (audioBuffer.length < minAudioBytes) {
+      console.warn(`Audio buffer too small: ${audioBuffer.length} bytes (minimum: ${minAudioBytes})`);
+      throw new Error(`Audio too short: ${audioBuffer.length} bytes`);
+    }
+    
+    console.log(`Audio extracted: ${audioBuffer.length} bytes (~${(audioBuffer.length / 32000).toFixed(2)}s)`);
+    console.log(`Transcribing audio with Vosk for session: ${dto.session_id}`);
+    const transcriptionResult = await transcribeAudio(audioBuffer, {
+      sampleRate: 16000,
+      words: false, // We only need the text, not word-level timestamps
+    });
+    
+    const transcribedText = transcriptionResult.text || transcriptionResult.partial;
+    console.log('=== TRANSCRIBED TEXT FROM VIDEO ===');
+    console.log(transcribedText);
+    console.log('===================================');
+  } catch (transcriptionError: any) {
+    // Log error but don't fail the request - video upload can still succeed
+    console.error('Error transcribing audio with Vosk:', transcriptionError);
+    console.warn('Continuing without transcription for session:', dto.session_id);
+  }
+
+  // Step 2: Upload video to S3 
   try {
     await uploadBuffersToS3([{ key: videoStorageKey, buffer: dto.video.buffer, contentType: 'video/webm' }]);
   } catch (s3Error: any) {
@@ -22,7 +61,7 @@ export async function uploadOtpVideo(
     throw new Error('Failed to upload OTP video to S3');
   }
 
-  // Step 2: Store OTP in verification_inputs table
+  // Step 3: Store OTP in verification_inputs table
   try {
     await createVerificationInput({
       session_uid: dto.session_id,
@@ -35,7 +74,7 @@ export async function uploadOtpVideo(
     console.error('Error storing OTP in database:', otpStorageError);
   }
 
-  // Step 3: Return success immediately with S3 path
+  // Step 4: Return success with S3 path
   return {
     sessionId: dto.session_id,
     videoPath: videoStorageKey,
