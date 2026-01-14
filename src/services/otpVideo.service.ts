@@ -1,5 +1,6 @@
 import { OtpVideoUploadRequestDto, OtpVideoUploadResponseDto } from '../dtos/otpVideo.dto';
 import { createVerificationInput } from '../repositories/verificationInput.repository';
+import { createOrUpdateOtpVerificationData } from '../repositories/otpVerificationData.repository';
 import { uploadBuffersToS3 } from '../utils/s3.util';
 import { extractAudioFromVideo } from '../utils/audio.util';
 import { transcribeAudio } from './vosk.service';
@@ -37,18 +38,7 @@ export async function uploadOtpVideo(
     throw new Error(`Failed to transcribe audio with Vosk`);
   }
 
-  // Step 2: Ask ChatGPT if transcript OTP matches the provided OTP 
-  try {
-    const match = await confirmOtpMatchWithChatGPT({
-      otp: dto.otp,
-      transcript: transcribedText,
-    });
-  } catch (otpMatchError: any) {
-    console.error('[OTP Match] Failed to verify:',otpMatchError);
-    throw new Error('Failed to verify OTP');
-  }
-
-  // Step 3: Store OTP in verification_inputs table
+  // Step 2: Store OTP in verification_inputs table
   try {
     await createVerificationInput({
       session_uid: dto.session_id,
@@ -60,6 +50,30 @@ export async function uploadOtpVideo(
     console.error('Error storing OTP in database:', otpStorageError);
     throw new Error('Failed to store OTP in database');
   }
+
+  // Step 3: Ask ChatGPT if transcript OTP matches the provided OTP 
+  let otpMatchResult;
+  try {
+    otpMatchResult = await confirmOtpMatchWithChatGPT({
+      otp: dto.otp,
+      transcript: transcribedText,
+    });
+    
+    // Store OTP verification data in database
+    await createOrUpdateOtpVerificationData({
+      session_uid: dto.session_id,
+      otp: Number(dto.otp),
+      extracted_otp: otpMatchResult.extractedOtp,
+      confidence: otpMatchResult.confidence,
+      match: otpMatchResult.match,
+      reason: otpMatchResult.reason,
+    });
+    console.log(`OTP verification data stored for session: ${dto.session_id}`);
+  } catch (otpMatchError: any) {
+    console.error('[OTP Match] Failed to verify:',otpMatchError);
+    throw new Error('Failed to verify OTP');
+  }
+
   // Step 4: Upload video to S3 
   try {
     await uploadBuffersToS3([{ key: videoStorageKey, buffer: dto.video.buffer, contentType: 'video/webm' }]);

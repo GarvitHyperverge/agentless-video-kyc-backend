@@ -9,3 +9,4 @@ export * from './apiClient.types';
 export * from './auditSession.types';
 export * from './verificationInput.types';
 export * from './hmacAuth.types';
+export * from './otpVerificationData.types';

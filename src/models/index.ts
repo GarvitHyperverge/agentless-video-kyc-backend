@@ -7,3 +7,4 @@ export * from './selfieValidation.model';
 export * from './apiClient.model';
 export * from './auditSession.model';
 export * from './verificationInput.model';
+export * from './otpVerificationData.model';

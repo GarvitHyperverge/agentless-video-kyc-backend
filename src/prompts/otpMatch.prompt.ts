@@ -26,14 +26,14 @@ Return JSON only.
 
 Format:
 {
-  "extractedOtp": "string",
+  "extractedOtp": number,
   "reason": "string",
   "confidence": number
 }
 
 Rules:
 - extractedOtp:
-  - Must be exactly 6 digits (no spaces, no letters)
+  - Must be a number (integer)
   - The OTP is always 6 digits long
   - Convert similar-sounding words to digits:
     "one" = 1, "two" = 2, "three" = 3, "four" = 4, "five" = 5,
@@ -43,7 +43,8 @@ Rules:
     - Phonetically similar words that might represent digits (e.g., "to" might be "two", "for" might be "four", "ate" might be "eight", "oh" might be "zero", "won" might be "one")
     - Consider context and surrounding words when determining if a word represents a digit
     - Be cautious with ambiguous transcriptions
-  - If no OTP found in transcript or you are not sure, use "-1-1-1-1-1-1"
+  - Convert the 6-digit OTP to a number (e.g., "123456" = 123456)
+  - If no OTP found in transcript or you are not sure, use -1
 - confidence:
   - Must be a number between 0 and 1
   - 0 = low confidence (unclear/ambiguous/background noise/ASR errors)
@@ -74,7 +75,7 @@ Rules:
   - If you are not sure or cannot provide a reason, use "Unable to verify the OTP from the video recording."
 - Default values when not found/not sure:
   - If you cannot determine the OTP, are not sure, or the transcript is too ambiguous:
-    - extractedOtp: "-1-1-1-1-1-1"
+    - extractedOtp: -1
     - confidence: -1
     - reason: "Unable to verify the OTP from the video recording."
 

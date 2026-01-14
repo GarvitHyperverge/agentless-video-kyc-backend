@@ -4,7 +4,7 @@ import { otpMatchPrompt } from '../prompts/otpMatch.prompt';
 export interface OtpMatchResult {
   match: boolean;
   confidence: number;
-  extractedOtp: string;
+  extractedOtp: number;
   reason: string;
 }
 
@@ -20,10 +20,10 @@ export async function confirmOtpMatchWithChatGPT(params: {
   const transcript= params.transcript;
   
   if (!otp) {
-    return { match: false, confidence: 0.0, extractedOtp: '', reason: 'OTP is empty' };
+    return { match: false, confidence: 0.0, extractedOtp: -1, reason: 'OTP is empty' };
   }
   if (!transcript) {
-    return { match: false, confidence: 0.0, extractedOtp: '', reason: 'Transcript is empty' };
+    return { match: false, confidence: 0.0, extractedOtp: -1, reason: 'Transcript is empty' };
   }
 
 
@@ -38,11 +38,11 @@ export async function confirmOtpMatchWithChatGPT(params: {
   // Parse and validate response
   try {
     const parsed = JSON.parse(content);
-    const extractedOtp = String(parsed.extractedOtp ?? '').trim() || '-1-1-1-1-1-1';
+    const extractedOtp = Number(parsed.extractedOtp) || -1;
     const confidence = Number(parsed.confidence) || -1;
     const reason = String(parsed.reason ?? '').trim() || 'Unable to verify the OTP from the video recording.';
     // Compute match: true if extractedOtp matches reference OTP and is not the error value
-    const match = extractedOtp !== '-1-1-1-1-1-1' && extractedOtp === otp;
+    const match = extractedOtp !== -1 && extractedOtp === Number(otp);
     
     return { 
       match, 
