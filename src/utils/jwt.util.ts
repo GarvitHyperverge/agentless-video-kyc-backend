@@ -22,9 +22,13 @@ export const generateJwt = (sessionId: string, timestamp?: number): string => {
     timestamp: timestamp || Date.now(),
   };
 
-  const token = jwt.sign(payload, config.jwtSecret, {
-    expiresIn: '15m', // Token expires in 15 minutes
-  });
+  const token = jwt.sign(
+    payload,
+    config.jwtSecret,
+    {
+      expiresIn: config.jwtExpiration,
+    } as jwt.SignOptions
+  );
 
   return token;
 };

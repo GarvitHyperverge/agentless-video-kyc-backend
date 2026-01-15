@@ -17,6 +17,15 @@ export const config = {
     s3SecretKey: process.env.SUPABASE_S3_SECRET_KEY || '',
   },
   jwtSecret: process.env.JWT_SECRET || 'your-secret-key-change-in-production',
+  jwtExpiration: process.env.JWT_EXPIRATION || '15m', // JWT expiration time (e.g., '15m', '1h', '7d')
+  cookie: {
+    sessionTokenName: process.env.COOKIE_SESSION_TOKEN_NAME || 'sessionToken',
+    httpOnly: true, // Prevents JavaScript access (XSS protection)
+    secure: false, // false in development
+    sameSite: 'lax' as const, // CSRF protection
+    path: '/api', // Only sent to /api/* paths (where JWT middleware is used)
+    maxAge: 15 * 60 * 1000, // 15 minutes in milliseconds (matches JWT expiration)
+  },
   vosk: {
     host: process.env.VOSK_HOST || '127.0.0.1', // Use 127.0.0.1 instead of localhost to avoid IPv6 resolution issues on macOS
     port: parseInt(process.env.VOSK_PORT || '2700', 10),

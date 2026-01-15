@@ -10,6 +10,7 @@ import {
 } from '../dtos/verificationSession.dto';
 import { ApiResponseDto } from '../dtos/apiResponse.dto';
 import { ApiClient } from '../types';
+import { config } from '../config';
 
 /**
  * Create a new verification session
@@ -34,11 +35,18 @@ export const createVerificationSession = async (req: Request, res: Response): Pr
     // The service will handle checking for existing pending sessions and expiration logic
     const sessionWithToken = await createVerificationSessionService(dto, clientName);
     
+    // Set JWT as HTTP-only cookie using configuration
+    res.cookie(config.cookie.sessionTokenName, sessionWithToken.token, {
+      httpOnly: config.cookie.httpOnly,
+      secure: config.cookie.secure,
+      sameSite: config.cookie.sameSite,
+      maxAge: config.cookie.maxAge,
+      path: config.cookie.path,
+    });
+    
     const response: ApiResponseDto<CreateVerificationSessionResponseDto> = {
       success: true,
-      data: {
-        token: sessionWithToken.token,
-      },
+      data: {}, // Token is now in cookie, not in response body
     };
     
     res.status(201).json(response);

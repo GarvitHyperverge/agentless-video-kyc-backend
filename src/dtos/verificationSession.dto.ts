@@ -18,7 +18,7 @@ export interface UpdateAuditStatusRequestDto {
 
 // Response DTOs
 export interface CreateVerificationSessionResponseDto {
-  token: string; // JWT token 
+  // Token is now sent as HTTP-only cookie, not in response body
 }
 
 export interface MarkVerificationSessionCompletedResponseDto {

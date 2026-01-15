@@ -17,7 +17,7 @@ import { generateJwt } from '../utils/jwt.util';
  * If it exists and is older than 15 minutes, marks it as incomplete and creates a new session.
  * If it exists and is less than 15 minutes old, throws an error.
  * Uses transaction to ensure both records are created atomically
- * Returns session with JWT token
+ * Returns session with JWT token (token is set as HTTP-only cookie by controller)
  */
 export const createVerificationSession = async (dto: CreateVerificationSessionRequestDto, clientName: string): Promise<VerificationSession & { token: string }> => {
   // Check if a pending session already exists for this client_name and external_txn_id

@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { verifyJwt, JwtPayload } from '../utils/jwt.util';
 import { getVerificationSessionByUid, updateVerificationSessionStatus } from '../repositories/verificationSession.repository';
 import { ApiResponseDto } from '../dtos/apiResponse.dto';
+import { config } from '../config';
 
 /**
  * Send authentication error response
@@ -16,32 +17,26 @@ const sendAuthError = (res: Response, error: string, statusCode: number = 401): 
 };
 
 /**
- * Extract JWT token from Authorization header
- * Expected format: "Bearer <token>"
+ * Extract JWT token from cookies only
+ * Cookie name is configured in config.cookie.sessionTokenName
  */
 const extractToken = (req: Request): string | null => {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader) {
-    return null;
+  // Get token from cookie
+  if (req.cookies && req.cookies[config.cookie.sessionTokenName]) {
+    return req.cookies[config.cookie.sessionTokenName];
   }
 
-  const parts = authHeader.split(' ');
-  if (parts.length !== 2 || parts[0] !== 'Bearer') {
-    return null;
-  }
-
-  return parts[1] || null;
+  return null;
 };
 
 /**
- * Middleware to authenticate requests using JWT
+ * Middleware to authenticate requests using JWT from cookies
  * 
- * Expected header:
- * - Authorization: Bearer <jwt_token>
+ * Expected:
+ * - Cookie: sessionToken=<jwt_token> (cookie name from config)
  * 
  * Validates:
- * 1. Token is present and valid format
+ * 1. Token is present in cookie
  * 2. Token signature is valid
  * 3. Token is not expired
  * 4. Session exists in database
@@ -57,11 +52,11 @@ export const jwtAuthMiddleware = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    // Extract token from Authorization header
+    // Extract token from cookie
     const token = extractToken(req);
 
     if (!token) {
-      sendAuthError(res, 'Missing or invalid Authorization header. Expected format: Bearer <token>');
+      sendAuthError(res, `Missing authentication token. Expected cookie: ${config.cookie.sessionTokenName}`);
       return;
     }
 
