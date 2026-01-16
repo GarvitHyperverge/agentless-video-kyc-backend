@@ -51,3 +51,52 @@ export const verifyJwt = (token: string): JwtPayload | null => {
     return null;
   }
 };
+
+/**
+ * Audit JWT Payload interface
+ */
+export interface AuditJwtPayload {
+  username: string;
+  iat?: number;
+  exp?: number;
+}
+
+/**
+ * Generate JWT token for audit sessions
+ * @param username - Audit user username
+ * @returns JWT token string
+ */
+export const generateAuditJwt = (username: string): string => {
+  const payload: AuditJwtPayload = {
+    username,
+  };
+
+  const token = jwt.sign(
+    payload,
+    config.jwtSecret,
+    {
+      expiresIn: config.auditJwtExpiration || '24h', // Default 24 hours for audit sessions
+    } as jwt.SignOptions
+  );
+
+  return token;
+};
+
+/**
+ * Verify and decode audit JWT token
+ * @param token - JWT token string
+ * @returns Decoded audit JWT payload or null if invalid
+ * @throws Error with message 'TOKEN_EXPIRED' if token is expired
+ */
+export const verifyAuditJwt = (token: string): AuditJwtPayload | null => {
+  try {
+    const decoded = jwt.verify(token, config.jwtSecret) as AuditJwtPayload;
+    return decoded;
+  } catch (error: any) {
+    // Check if token is expired specifically
+    if (error.name === 'TokenExpiredError') {
+      throw new Error('TOKEN_EXPIRED'); // Special error for expiration
+    }
+    return null;
+  }
+};

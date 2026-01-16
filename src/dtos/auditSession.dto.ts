@@ -4,9 +4,9 @@ export interface LoginRequestDto {
   password: string;
 }
 
-// Response DTO
+// Response DTO 
 export interface LoginResponseDto {
   success: boolean;
   message: string;
-  username?: string;
+  username?: string; // Only present when success is true
 }

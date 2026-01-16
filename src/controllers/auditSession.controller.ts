@@ -3,10 +3,13 @@ import { login as loginService } from '../services/auditSession.service';
 import { LoginRequestDto } from '../dtos/auditSession.dto';
 import { ApiResponseDto } from '../dtos/apiResponse.dto';
 import { LoginResponseDto } from '../dtos/auditSession.dto';
+import { generateAuditJwt } from '../utils/jwt.util';
+import { config } from '../config';
 
 /**
  * Login endpoint for audit sessions
  * POST /api/audit/login
+ * Sets JWT token as HTTP-only cookie on successful login
  */
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -34,10 +37,26 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Login successful
+    // Generate JWT token for audit session
+    const token = generateAuditJwt(dto.username);
+
+    // Set JWT as HTTP-only cookie
+    res.cookie(config.auditCookie.tokenName, token, {
+      httpOnly: config.auditCookie.httpOnly,
+      secure: config.auditCookie.secure,
+      sameSite: config.auditCookie.sameSite,
+      path: config.auditCookie.path,
+      maxAge: config.auditCookie.maxAge,
+    });
+
+    // Login successful - return success message with username
     const response: ApiResponseDto<LoginResponseDto> = {
       success: true,
-      data: loginResult,
+      data: {
+        success: true,
+        message: 'Login successful',
+        username: loginResult.username!,
+      },
     };
     res.status(200).json(response);
   } catch (error: any) {

@@ -18,6 +18,7 @@ export const config = {
   },
   jwtSecret: process.env.JWT_SECRET || 'your-secret-key-change-in-production',
   jwtExpiration: process.env.JWT_EXPIRATION || '15m', // JWT expiration time (e.g., '15m', '1h', '7d')
+  auditJwtExpiration: process.env.AUDIT_JWT_EXPIRATION || '24h', // Audit JWT expiration time (e.g., '24h', '7d')
   cookie: {
     sessionTokenName: process.env.COOKIE_SESSION_TOKEN_NAME || 'sessionToken',
     httpOnly: true, // Prevents JavaScript access (XSS protection)
@@ -25,6 +26,14 @@ export const config = {
     sameSite: 'lax' as const, // CSRF protection
     path: '/api', // Only sent to /api/* paths (where JWT middleware is used)
     maxAge: 15 * 60 * 1000, // 15 minutes in milliseconds (matches JWT expiration)
+  },
+  auditCookie: {
+    tokenName: process.env.AUDIT_COOKIE_TOKEN_NAME || 'auditToken',
+    httpOnly: true, // Prevents JavaScript access (XSS protection)
+    secure: false, // false in development
+    sameSite: 'lax' as const, // CSRF protection
+    path: '/api/audit', // Only sent to /api/audit/* paths
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours in milliseconds (matches audit JWT expiration)
   },
   vosk: {
     host: process.env.VOSK_HOST || '127.0.0.1', // Use 127.0.0.1 instead of localhost to avoid IPv6 resolution issues on macOS
