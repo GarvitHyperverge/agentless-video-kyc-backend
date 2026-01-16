@@ -3,7 +3,6 @@ import { createVerificationSession as createVerificationSessionService, markVeri
 import { 
   CreateVerificationSessionRequestDto, 
   CreateVerificationSessionResponseDto,
-  UpdateVerificationSessionStatusRequestDto,
   MarkVerificationSessionCompletedResponseDto,
   UpdateAuditStatusRequestDto,
   UpdateAuditStatusResponseDto
