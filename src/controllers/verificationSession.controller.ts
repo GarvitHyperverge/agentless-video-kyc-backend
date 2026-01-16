@@ -23,8 +23,9 @@ export const createVerificationSession = async (req: Request, res: Response): Pr
     if (!apiClient) {
       const response: ApiResponseDto<never> = {
         success: false,
-        error: 'API client information not found. Ensure HMAC authentication is properly configured.',
+        error: 'Error creating verification session',
       };
+      console.log('[Verification Session] API client information not found. Ensure HMAC authentication is properly configured.');
       res.status(500).json(response);
       return;
     }
@@ -45,15 +46,16 @@ export const createVerificationSession = async (req: Request, res: Response): Pr
     
     const response: ApiResponseDto<CreateVerificationSessionResponseDto> = {
       success: true,
-      data: {}, // Token is now in cookie, not in response body
+      data: {}, 
     };
     
     res.status(201).json(response);
   } catch (error: any) {
     const response: ApiResponseDto<never> = {
       success: false,
-      error: error.message || 'Failed to create verification session',
+      error:'Failed to create verification session',
     };
+    console.log('[Verification Session] Error creating verification session:', error);
     res.status(400).json(response);
   }
 };
