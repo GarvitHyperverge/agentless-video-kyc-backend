@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { login } from '../controllers/auditSession.controller';
+import { login, logout } from '../controllers/auditSession.controller';
 import { getPendingSessions, getSessionDetailsController } from '../controllers/audit.controller';
 import { auditJwtAuthMiddleware } from '../middleware/auditJwtAuth.middleware';
 
@@ -7,6 +7,9 @@ const router = Router();
 
 // Login route 
 router.post('/login', login);
+
+// Logout route - clears the server-side cookie
+router.post('/logout', logout);
 
 // Protected routes 
 // Get all pending sessions with optional filter

@@ -63,6 +63,7 @@ export const createVerificationSession = async (req: Request, res: Response): Pr
 /**
  * Mark verification session as completed
  * PATCH /api/verification-sessions/complete
+ * Clears the JWT token cookie on the server side
  */
 export const markVerificationSessionCompletedController = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -70,6 +71,13 @@ export const markVerificationSessionCompletedController = async (req: Request, r
     const sessionId = (req as any).sessionId as string;
 
     const session = await markVerificationSessionCompleted(sessionId);
+    
+    res.clearCookie(config.cookie.sessionTokenName, {
+      httpOnly: config.cookie.httpOnly,
+      secure: config.cookie.secure,
+      sameSite: config.cookie.sameSite,
+      path: config.cookie.path,
+    });
     
     const response: ApiResponseDto<MarkVerificationSessionCompletedResponseDto> = {
       success: true,

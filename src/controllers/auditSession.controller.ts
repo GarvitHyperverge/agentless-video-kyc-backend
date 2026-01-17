@@ -67,3 +67,36 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     res.status(500).json(response);
   }
 };
+
+/**
+ * Logout endpoint for audit sessions
+ * POST /api/audit/logout
+ * Clears the JWT token cookie on the server side
+ */
+export const logout = async (req: Request, res: Response): Promise<void> => {
+  try {
+
+    res.clearCookie(config.auditCookie.tokenName, {
+      httpOnly: config.auditCookie.httpOnly,
+      secure: config.auditCookie.secure,
+      sameSite: config.auditCookie.sameSite,
+      path: config.auditCookie.path,
+    });
+
+    // Logout successful - return success message
+    const response: ApiResponseDto<{ success: true; message: string }> = {
+      success: true,
+      data: {
+        success: true,
+        message: 'Logout successful',
+      },
+    };
+    res.status(200).json(response);
+  } catch (error: any) {
+    const response: ApiResponseDto<never> = {
+      success: false,
+      error: error.message || 'Logout failed',
+    };
+    res.status(500).json(response);
+  }
+};
