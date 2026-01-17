@@ -1,0 +1,60 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: agentless-video-kyc-backend
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      # Database
+      - SUPABASE_DATABASE_URL=${SUPABASE_DATABASE_URL}
+      - SUPABASE_PROJECT_REF=${SUPABASE_PROJECT_REF}
+      - SUPABASE_REGION=${SUPABASE_REGION}
+      - SUPABASE_S3_ACCESS_KEY=${SUPABASE_S3_ACCESS_KEY}
+      - SUPABASE_S3_SECRET_KEY=${SUPABASE_S3_SECRET_KEY}
+      
+      # Hyperverge
+      - HYPERVERGE_APP_ID=${HYPERVERGE_APP_ID}
+      - HYPERVERGE_APP_KEY=${HYPERVERGE_APP_KEY}
+      - HYPERVERGE_BASE_URL=${HYPERVERGE_BASE_URL}
+      
+      # JWT
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=${JWT_EXPIRATION}
+      - AUDIT_JWT_EXPIRATION=${AUDIT_JWT_EXPIRATION}
+      
+      # Cookies
+      - COOKIE_SESSION_TOKEN_NAME=${COOKIE_SESSION_TOKEN_NAME}
+      - AUDIT_COOKIE_TOKEN_NAME=${AUDIT_COOKIE_TOKEN_NAME}
+      
+      # HMAC
+      - HMAC_TIMESTAMP_TOLERANCE=${HMAC_TIMESTAMP_TOLERANCE}
+      
+      # Vosk 
+      - VOSK_HOST=${VOSK_HOST:-vosk-websocket-server}
+      - VOSK_PORT=${VOSK_PORT:-2700}
+      - VOSK_PROTOCOL=${VOSK_PROTOCOL:-ws}
+      
+      # OpenAI (if used)
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL}
+      
+      # Port
+      - PORT=${PORT:-3000}
+    env_file:
+      - .env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    name: kyc-network
+    driver: bridge

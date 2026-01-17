@@ -36,7 +36,9 @@ export const config = {
     maxAge: 24 * 60 * 60 * 1000, // 24 hours in milliseconds (matches audit JWT expiration)
   },
   vosk: {
-    host: process.env.VOSK_HOST || '127.0.0.1', // Use 127.0.0.1 instead of localhost to avoid IPv6 resolution issues on macOS
+    // In Docker: use 'vosk-websocket-server' (service name)
+    // Outside Docker: set VOSK_HOST=127.0.0.1 or localhost in .env
+    host: process.env.VOSK_HOST || 'vosk-websocket-server',
     port: parseInt(process.env.VOSK_PORT || '2700', 10),
     protocol: process.env.VOSK_PROTOCOL || 'ws',
   },
