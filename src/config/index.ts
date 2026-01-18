@@ -18,7 +18,8 @@ export const config = {
   },
   jwtSecret: process.env.JWT_SECRET || 'your-secret-key-change-in-production',
   jwtExpiration: process.env.JWT_EXPIRATION || '15m', // JWT expiration time (e.g., '15m', '1h', '7d')
-  auditJwtExpiration: process.env.AUDIT_JWT_EXPIRATION || '24h', // Audit JWT expiration time (e.g., '24h', '7d')
+  auditAccessTokenExpiration: process.env.AUDIT_ACCESS_TOKEN_EXPIRATION || '2m', // Access token expiration (2 minutes)
+  auditRefreshTokenExpiration: process.env.AUDIT_REFRESH_TOKEN_EXPIRATION || '7d', // Refresh token expiration (7 days)
   cookie: {
     sessionTokenName: process.env.COOKIE_SESSION_TOKEN_NAME || 'sessionToken',
     httpOnly: true, // Prevents JavaScript access (XSS protection)
@@ -33,7 +34,15 @@ export const config = {
     secure: false, // false in development
     sameSite: 'lax' as const, // CSRF protection
     path: '/api/audit', // Only sent to /api/audit/* paths
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours in milliseconds (matches audit JWT expiration)
+    maxAge: 2 * 60 * 1000, // 2 minutes in milliseconds (matches access token expiration)
+  },
+  auditRefreshCookie: {
+    tokenName: process.env.AUDIT_REFRESH_COOKIE_TOKEN_NAME || 'auditRefreshToken',
+    httpOnly: true, // Prevents JavaScript access (XSS protection)
+    secure: false, // false in development
+    sameSite: 'lax' as const, // CSRF protection
+    path: '/api/audit', // Only sent to /api/audit/* paths
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds (matches refresh token expiration)
   },
   vosk: {
     // In Docker: use 'vosk-websocket-server' (service name)
