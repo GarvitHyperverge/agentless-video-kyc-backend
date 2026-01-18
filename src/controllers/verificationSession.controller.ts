@@ -1,11 +1,13 @@
 import { Request, Response } from 'express';
-import { createVerificationSession as createVerificationSessionService, markVerificationSessionCompleted, updateVerificationSessionAuditStatus as updateVerificationSessionAuditStatusService } from '../services/verificationSession.service';
+import { createVerificationSession as createVerificationSessionService, markVerificationSessionCompleted, updateVerificationSessionAuditStatus as updateVerificationSessionAuditStatusService, activateVerificationSession as activateVerificationSessionService } from '../services/verificationSession.service';
 import { 
   CreateVerificationSessionRequestDto, 
   CreateVerificationSessionResponseDto,
   MarkVerificationSessionCompletedResponseDto,
   UpdateAuditStatusRequestDto,
-  UpdateAuditStatusResponseDto
+  UpdateAuditStatusResponseDto,
+  ActivateSessionRequestDto,
+  ActivateSessionResponseDto
 } from '../dtos/verificationSession.dto';
 import { ApiResponseDto } from '../dtos/apiResponse.dto';
 import { ApiClient } from '../types';
@@ -14,6 +16,7 @@ import { config } from '../config';
 /**
  * Create a new verification session
  * POST /api/verification-sessions
+ * Returns a short-lived temp token (1 minute) in response body
  */
 export const createVerificationSession = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -35,6 +38,47 @@ export const createVerificationSession = async (req: Request, res: Response): Pr
     // The service will handle checking for existing pending sessions and expiration logic
     const sessionWithToken = await createVerificationSessionService(dto, clientName);
     
+    // Return temp token in response body (not as cookie)
+    // sessionId is embedded in the temp token JWT payload, not exposed separately
+    const response: ApiResponseDto<CreateVerificationSessionResponseDto> = {
+      success: true,
+      data: {
+        temp_token: sessionWithToken.tempToken,
+      }, 
+    };
+    
+    res.status(201).json(response);
+  } catch (error: any) {
+    const response: ApiResponseDto<never> = {
+      success: false,
+      error: error.message || 'Failed to create verification session',
+    };
+    console.log('[Verification Session] Error creating verification session:', error);
+    res.status(400).json(response);
+  }
+};
+
+/**
+ * Activate verification session using temp token
+ * POST /api/verification-sessions/activate
+ * Validates temp token (one-time use), sets session cookie, and allows user to proceed
+ */
+export const activateVerificationSession = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const dto: ActivateSessionRequestDto = req.body;
+    
+    if (!dto.temp_token || dto.temp_token.trim() === '') {
+      const response: ApiResponseDto<never> = {
+        success: false,
+        error: 'temp_token is required',
+      };
+      res.status(400).json(response);
+      return;
+    }
+
+    // Validate temp token and get session (Redis is required)
+    const sessionWithToken = await activateVerificationSessionService(dto.temp_token);
+    
     // Set JWT as HTTP-only cookie using configuration
     res.cookie(config.cookie.sessionTokenName, sessionWithToken.token, {
       httpOnly: config.cookie.httpOnly,
@@ -44,19 +88,31 @@ export const createVerificationSession = async (req: Request, res: Response): Pr
       path: config.cookie.path,
     });
     
-    const response: ApiResponseDto<CreateVerificationSessionResponseDto> = {
+    const response: ApiResponseDto<ActivateSessionResponseDto> = {
       success: true,
-      data: {}, 
+      data: {
+        session_id: sessionWithToken.session_uid,
+      },
     };
     
-    res.status(201).json(response);
+    res.status(200).json(response);
   } catch (error: any) {
     const response: ApiResponseDto<never> = {
       success: false,
-      error:'Failed to create verification session',
+      error: error.message || 'Failed to activate verification session',
     };
-    console.log('[Verification Session] Error creating verification session:', error);
-    res.status(400).json(response);
+    console.log('[Verification Session] Error activating verification session:', error);
+    
+    // Handle specific error cases
+    if (error.message === 'TOKEN_EXPIRED') {
+      res.status(401).json(response);
+    } else if (error.message === 'Invalid or already used temp token' || error.message === 'Invalid session') {
+      res.status(400).json(response);
+    } else if (error.message.includes('Redis is required')) {
+      res.status(503).json(response); // Service Unavailable
+    } else {
+      res.status(400).json(response);
+    }
   }
 };
 

@@ -20,6 +20,7 @@ export const config = {
   jwtExpiration: process.env.JWT_EXPIRATION || '15m', // JWT expiration time (e.g., '15m', '1h', '7d')
   auditAccessTokenExpiration: process.env.AUDIT_ACCESS_TOKEN_EXPIRATION || '2m', // Access token expiration (2 minutes)
   auditRefreshTokenExpiration: process.env.AUDIT_REFRESH_TOKEN_EXPIRATION || '7d', // Refresh token expiration (7 days)
+  tempTokenExpiration: process.env.TEMP_TOKEN_EXPIRATION || '1m', // Temp token expiration (1 minute) for session activation
   cookie: {
     sessionTokenName: process.env.COOKIE_SESSION_TOKEN_NAME || 'sessionToken',
     httpOnly: true, // Prevents JavaScript access (XSS protection)

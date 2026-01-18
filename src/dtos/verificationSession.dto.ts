@@ -18,7 +18,7 @@ export interface UpdateAuditStatusRequestDto {
 
 // Response DTOs
 export interface CreateVerificationSessionResponseDto {
-  // Token is now sent as HTTP-only cookie, not in response body
+  temp_token: string;
 }
 
 export interface MarkVerificationSessionCompletedResponseDto {
@@ -39,4 +39,12 @@ export interface UpdateAuditStatusResponseDto {
   audit_status: string;
   created_at: Date;
   updated_at: Date;
+}
+
+export interface ActivateSessionRequestDto {
+  temp_token: string;
+}
+
+export interface ActivateSessionResponseDto {
+  session_id: string;
 }

@@ -6,10 +6,12 @@ import {
   createVerificationSession as createVerificationSessionRepo, 
   updateVerificationSessionStatus as updateVerificationSessionStatusRepo,
   updateVerificationSessionAuditStatus as updateVerificationSessionAuditStatusRepo,
-  getPendingSessionByClientNameAndExternalTxnId
+  getPendingSessionByClientNameAndExternalTxnId,
+  getVerificationSessionByUid
 } from '../repositories/verificationSession.repository';
 import { createBusinessPartnerPanData } from '../repositories/businessPartnerPanData.repository';
-import { generateJwt } from '../utils/jwt.util';
+import { generateJwt, generateTempToken, verifyTempToken } from '../utils/jwt.util';
+import { storeTempToken, validateAndConsumeTempToken } from './tempToken.service';
 
 /**
  * Create a new verification session with PAN data
@@ -17,9 +19,9 @@ import { generateJwt } from '../utils/jwt.util';
  * If it exists and is older than 15 minutes, marks it as incomplete and creates a new session.
  * If it exists and is less than 15 minutes old, throws an error.
  * Uses transaction to ensure both records are created atomically
- * Returns session with JWT token (token is set as HTTP-only cookie by controller)
+ * Returns session with temp token (token is returned in response body, not as cookie)
  */
-export const createVerificationSession = async (dto: CreateVerificationSessionRequestDto, clientName: string): Promise<VerificationSession & { token: string }> => {
+export const createVerificationSession = async (dto: CreateVerificationSessionRequestDto, clientName: string): Promise<VerificationSession & { tempToken: string }> => {
   // Check if a pending session already exists for this client_name and external_txn_id
   const existingPendingSession = await getPendingSessionByClientNameAndExternalTxnId(
     clientName,
@@ -75,14 +77,17 @@ export const createVerificationSession = async (dto: CreateVerificationSessionRe
     return sessionData;
   });
 
-  // Generate JWT token with sessionId and timestamp matching database created_at
-  // Convert database timestamp (Date object) to milliseconds for JWT
+  // Generate temp token with sessionId and timestamp matching database created_at
+  // Convert database timestamp (Date object) to milliseconds for token
   const sessionTimestamp = session.created_at.getTime();
-  const token = generateJwt(sessionId, sessionTimestamp);
+  const tempToken = generateTempToken(sessionId, sessionTimestamp);
+  
+  // Store temp token in Redis for one-time use validation (Redis is required)
+  await storeTempToken(tempToken, sessionId);
 
   return {
     ...session,
-    token,
+    tempToken,
   };
 };
 
@@ -101,4 +106,51 @@ export const updateVerificationSessionAuditStatus = async (
   auditStatus: 'pass' | 'fail'
 ): Promise<VerificationSession> => {
   return await updateVerificationSessionAuditStatusRepo(sessionUid, auditStatus);
+};
+
+/**
+ * Activate verification session using temp token
+ * Validates temp token (one-time use via Redis), checks session validity, and returns session with JWT token
+ * Redis is REQUIRED for this operation
+ */
+export const activateVerificationSession = async (tempToken: string): Promise<VerificationSession & { token: string }> => {
+  // Verify temp token (JWT validation)
+  const tempTokenPayload = verifyTempToken(tempToken);
+  
+  if (!tempTokenPayload) {
+    throw new Error('Invalid temp token');
+  }
+
+  // Validate and consume temp token from Redis (one-time use) - Redis is required
+  const sessionIdFromRedis = await validateAndConsumeTempToken(tempToken);
+  
+  if (!sessionIdFromRedis) {
+    throw new Error('Invalid or already used temp token');
+  }
+
+  // Verify session ID matches between token and Redis
+  if (tempTokenPayload.sessionId !== sessionIdFromRedis) {
+    throw new Error('Invalid temp token - session ID mismatch');
+  }
+
+  // Get session from database to verify it exists and is valid
+  const session = await getVerificationSessionByUid(tempTokenPayload.sessionId);
+  
+  if (!session) {
+    throw new Error('Invalid session');
+  }
+
+  // Check if session is in pending status
+  if (session.status !== 'pending') {
+    throw new Error(`Session is not in pending status. Current status: ${session.status}`);
+  }
+
+  // Generate regular JWT token for session (to be set as cookie)
+  const sessionTimestamp = session.created_at.getTime();
+  const token = generateJwt(session.session_uid, sessionTimestamp);
+
+  return {
+    ...session,
+    token,
+  };
 };
