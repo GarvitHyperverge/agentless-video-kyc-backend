@@ -3,8 +3,8 @@ import { login as loginService } from '../services/auditSession.service';
 import { LoginRequestDto } from '../dtos/auditSession.dto';
 import { ApiResponseDto } from '../dtos/apiResponse.dto';
 import { LoginResponseDto } from '../dtos/auditSession.dto';
-import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../utils/jwt.util';
-import { storeRefreshToken, revokeAllRefreshTokens, validateRefreshToken } from '../services/auditToken.service';
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../utils/auditJwt.util';
+import { storeAuditSession, revokeAuditSession } from '../services/auditSession.service';
 import { config } from '../config';
 
 /**
@@ -38,21 +38,15 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Generate both access and refresh tokens
-    const accessToken = generateAccessToken(dto.username);
-    const { token: refreshToken, tokenId } = generateRefreshToken(dto.username);
+    // Generate both access and refresh tokens (access token now includes JTI)
+    const { token: accessToken, jti } = generateAccessToken(dto.username);
+    const { token: refreshToken } = generateRefreshToken(dto.username);
 
-    // Store refresh token in Redis
+    // Store access token session in Redis with JTI for route protection and session revocation
     try {
-      await storeRefreshToken(dto.username, tokenId);
+      await storeAuditSession(jti, dto.username, config.auditAccessTokenExpiration);
     } catch (error: any) {
-      console.error('[Audit Login] Failed to store refresh token in Redis:', error);
-      const response: ApiResponseDto<never> = {
-        success: false,
-        error: 'Login failed: unable to store session token',
-      };
-      res.status(500).json(response);
-      return;
+      console.error('[Audit Login] Failed to store access token session in Redis:', error);
     }
 
     // Set access token as HTTP-only cookie
@@ -142,20 +136,16 @@ export const refresh = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Validate refresh token exists in Redis
-    const isValid = await validateRefreshToken(payload.username, payload.tokenId);
+    // Generate new access token (with JTI for Redis session management)
+    const { token: newAccessToken, jti } = generateAccessToken(payload.username);
     
-    if (!isValid) {
-      const response: ApiResponseDto<never> = {
-        success: false,
-        error: 'Authentication failed',
-      };
-      res.status(401).json(response);
-      return;
+    // Store new access token session in Redis with JTI
+    try {
+      await storeAuditSession(jti, payload.username, config.auditAccessTokenExpiration);
+    } catch (error: any) {
+      console.error('[Audit Refresh] Failed to store access token session in Redis:', error);
+      // Continue anyway - session revocation won't work but token is still valid
     }
-
-    // Generate new access token
-    const newAccessToken = generateAccessToken(payload.username);
 
     // Set new access token as HTTP-only cookie
     res.cookie(config.auditCookie.tokenName, newAccessToken, {
@@ -187,25 +177,27 @@ export const refresh = async (req: Request, res: Response): Promise<void> => {
 /**
  * Logout endpoint for audit sessions
  * POST /api/audit/logout
- * Revokes refresh token from Redis and clears both token cookies
+ * Revokes access token session (JTI) and refresh token from Redis and clears both token cookies
  */
 export const logout = async (req: Request, res: Response): Promise<void> => {
   try {
-    // Extract refresh token from cookie to get username and tokenId
-    const refreshToken = req.cookies?.[config.auditRefreshCookie.tokenName];
+    // Extract access token from cookie to get JTI for revocation
+    const accessToken = req.cookies?.[config.auditCookie.tokenName];
     
-    if (refreshToken) {
+    if (accessToken) {
       try {
-        const payload = verifyRefreshToken(refreshToken);
-        if (payload && payload.tokenId) {
-          // Revoke the specific refresh token
-          await revokeAllRefreshTokens(payload.username);
+        const { verifyAuditJwt } = await import('../utils/auditJwt.util');
+        const payload = verifyAuditJwt(accessToken);
+        if (payload && payload.jti) {
+          // Revoke access token session from Redis using JTI
+          await revokeAuditSession(payload.jti);
         }
       } catch (error: any) {
         // If token is invalid/expired, continue with logout anyway
-        console.log('[Audit Logout] Could not verify refresh token for revocation:', error.message);
+        console.log('[Audit Logout] Could not verify access token for revocation:', error.message);
       }
     }
+
 
     // Clear access token cookie
     res.clearCookie(config.auditCookie.tokenName, {

@@ -21,6 +21,7 @@
     "@supabase/supabase-js": "^2.89.0",
     "@types/multer": "^2.0.0",
     "axios": "^1.13.2",
+    "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
@@ -36,6 +37,7 @@
     "ws": "^8.19.0"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
     "@types/cookie-parser": "^1.4.7",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",

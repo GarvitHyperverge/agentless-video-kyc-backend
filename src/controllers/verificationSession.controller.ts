@@ -40,8 +40,8 @@ export const createVerificationSession = async (req: Request, res: Response): Pr
     // The service will handle checking for existing pending sessions and expiration logic
     const sessionWithToken = await createVerificationSessionService(dto, clientName);
     
-    // Return temp token in response body (not as cookie)
-    // sessionId is embedded in the temp token JWT payload, not exposed separately
+    // Return temp token in response body 
+    // sessionId is embedded in the temp token JWT payload
     const response: ApiResponseDto<CreateVerificationSessionResponseDto> = {
       success: true,
       data: {

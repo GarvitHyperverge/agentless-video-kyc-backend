@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { verifyAuditJwt, AuditJwtPayload } from '../utils/jwt.util';
+import { verifyAuditJwt, AuditJwtPayload } from '../utils/auditJwt.util';
 import { getAuditSessionByUsername } from '../repositories/auditSession.repository';
+import { validateAuditSession } from '../services/auditSession.service';
 import { ApiResponseDto } from '../dtos/apiResponse.dto';
 import { config } from '../config';
 
@@ -30,7 +31,7 @@ const extractToken = (req: Request): string | null => {
 };
 
 /**
- * Middleware to authenticate audit requests using JWT from cookies
+ * Middleware to authenticate audit requests using JWT from cookies with Redis-backed session management
  * 
  * Expected:
  * - Cookie: auditToken=<jwt_token> (cookie name from config)
@@ -39,11 +40,13 @@ const extractToken = (req: Request): string | null => {
  * 1. Token is present in cookie
  * 2. Token signature is valid
  * 3. Token is not expired
- * 4. User exists in database
+ * 4. JTI exists in Redis (session is active - not revoked)
+ * 5. User exists in database
  * 
  * Attaches to request:
  * - req.auditUsername: The username from JWT
  * - req.auditUser: The audit user object
+ * - req.auditJti: The JWT ID (JTI) for session revocation
  */
 export const auditJwtAuthMiddleware = async (
   req: Request,
@@ -83,6 +86,32 @@ export const auditJwtAuthMiddleware = async (
       return;
     }
 
+    // Validate JTI exists in payload (required for Redis session management)
+    if (!payload.jti) {
+      console.log('[Audit JWT Auth] Token missing JTI');
+      sendAuthError(res);
+      return;
+    }
+
+    // Check if session is active in Redis (JTI-based session validation)
+    // This allows instant session revocation via Redis deletion
+    try {
+      const usernameFromRedis = await validateAuditSession(payload.jti);
+      
+      if (!usernameFromRedis) {
+        // Session not found in Redis - token revoked or expired
+        console.log('[Audit JWT Auth] Session not found in Redis (revoked or expired)');
+        sendAuthError(res);
+        return;
+      }
+      
+    } catch (redisError: any) {
+      // Redis is required for session validation
+      console.error('[Audit JWT Auth] Redis session validation failed:', redisError);
+      sendAuthError(res, 503);
+      return;
+    }
+
     // Validate user exists in database
     const auditUser = await getAuditSessionByUsername(payload.username);
 
@@ -95,6 +124,7 @@ export const auditJwtAuthMiddleware = async (
     // Attach user info to request for use in controllers
     (req as any).auditUsername = payload.username;
     (req as any).auditUser = auditUser;
+    (req as any).auditJti = payload.jti; // Attach JTI for logout/session revocation
 
     // Authentication successful
     next();

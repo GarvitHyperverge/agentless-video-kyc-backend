@@ -68,7 +68,7 @@ const validateTimestamp = (timestamp: string): boolean => {
   const requestTimestamp = parseInt(timestamp, 10);
 
   if (isNaN(requestTimestamp)) {
-    console.log('[HMAC Auth] ❌ Invalid timestamp format:', timestamp);
+    console.log('[HMAC Auth] Invalid timestamp format:', timestamp);
     return false;
   }
 
@@ -86,7 +86,7 @@ const validateTimestamp = (timestamp: string): boolean => {
   });
 
   if (timeDifference > toleranceMs) {
-    console.log('[HMAC Auth] ❌ Timestamp outside tolerance window');
+    console.log('[HMAC Auth] Timestamp outside tolerance window');
     return false;
   }
 

@@ -10,7 +10,9 @@ import {
   getVerificationSessionByUid
 } from '../repositories/verificationSession.repository';
 import { createBusinessPartnerPanData } from '../repositories/businessPartnerPanData.repository';
-import { generateJwt, generateTempToken, verifyTempToken, getJwtExpirationSeconds } from '../utils/jwt.util';
+import { generateJwt } from '../utils/jwt.util';
+import { config } from '../config';
+import { generateTempToken, verifyTempToken } from '../utils/tempToken.util';
 import { storeTempToken, validateAndConsumeTempToken } from './tempToken.service';
 import { storeSession } from './session.service';
 
@@ -20,7 +22,7 @@ import { storeSession } from './session.service';
  * If it exists and is older than 15 minutes, marks it as incomplete and creates a new session.
  * If it exists and is less than 15 minutes old, throws an error.
  * Uses transaction to ensure both records are created atomically
- * Returns session with temp token (token is returned in response body, not as cookie)
+ * Returns session with temp token (token is returned in response body)
  */
 export const createVerificationSession = async (dto: CreateVerificationSessionRequestDto, clientName: string): Promise<VerificationSession & { tempToken: string }> => {
   // Check if a pending session already exists for this client_name and external_txn_id
@@ -129,11 +131,6 @@ export const activateVerificationSession = async (tempToken: string): Promise<Ve
     throw new Error('Invalid or already used temp token');
   }
 
-  // Verify session ID matches between token and Redis
-  if (tempTokenPayload.sessionId !== sessionIdFromRedis) {
-    throw new Error('Invalid temp token - session ID mismatch');
-  }
-
   // Get session from database to verify it exists and is valid
   const session = await getVerificationSessionByUid(tempTokenPayload.sessionId);
   
@@ -148,11 +145,10 @@ export const activateVerificationSession = async (tempToken: string): Promise<Ve
 
   // Generate regular JWT token for session (to be set as cookie) with JTI
   const sessionTimestamp = session.created_at.getTime();
-  const { token, jti } = generateJwt(session.session_uid, undefined, sessionTimestamp);
+  const { token, jti } = generateJwt(session.session_uid, sessionTimestamp);
   
   // Store session in Redis with JTI for session revocation
-  const ttlSeconds = getJwtExpirationSeconds();
-  await storeSession(jti, session.session_uid, ttlSeconds);
+  await storeSession(jti, session.session_uid, config.jwtExpiration);
 
   return {
     ...session,

@@ -17,10 +17,10 @@ export const config = {
     s3SecretKey: process.env.SUPABASE_S3_SECRET_KEY || '',
   },
   jwtSecret: process.env.JWT_SECRET || 'your-secret-key-change-in-production',
-  jwtExpiration: process.env.JWT_EXPIRATION || '15m', // JWT expiration time (e.g., '15m', '1h', '7d')
-  auditAccessTokenExpiration: process.env.AUDIT_ACCESS_TOKEN_EXPIRATION || '2m', // Access token expiration (2 minutes)
-  auditRefreshTokenExpiration: process.env.AUDIT_REFRESH_TOKEN_EXPIRATION || '7d', // Refresh token expiration (7 days)
-  tempTokenExpiration: process.env.TEMP_TOKEN_EXPIRATION || '1m', // Temp token expiration (1 minute) for session activation
+  jwtExpiration: parseInt(process.env.JWT_EXPIRATION || '900', 10), // JWT expiration time in seconds (default: 15 minutes = 900 seconds)
+  auditAccessTokenExpiration: parseInt(process.env.AUDIT_ACCESS_TOKEN_EXPIRATION || '120', 10), // Access token expiration in seconds (default: 2 minutes = 120 seconds)
+  auditRefreshTokenExpiration: parseInt(process.env.AUDIT_REFRESH_TOKEN_EXPIRATION || '604800', 10), // Refresh token expiration in seconds (default: 7 days = 604800 seconds)
+  tempTokenExpiration: parseInt(process.env.TEMP_TOKEN_EXPIRATION || '60', 10), // Temp token expiration in seconds (default: 1 minute = 60 seconds)
   cookie: {
     sessionTokenName: process.env.COOKIE_SESSION_TOKEN_NAME || 'sessionToken',
     httpOnly: true, // Prevents JavaScript access (XSS protection)
