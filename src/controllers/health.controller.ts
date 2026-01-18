@@ -12,8 +12,8 @@ export const getHealth = async (req: Request, res: Response) => {
     ...(config.redis.enabled && { redis: redisConnected ? 'connected' : 'disconnected' }),
   };
   
-  // If any required service is down, return 503
-  if (!dbConnected || (config.redis.enabled && !redisConnected)) {
+  // If database is down, return 503
+  if (!dbConnected) {
     return res.status(503).json({
       status: 'ERROR',
       timestamp: new Date().toISOString(),

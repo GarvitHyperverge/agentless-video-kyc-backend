@@ -70,7 +70,8 @@ export const getRedisClient = (): RedisClientType | null => {
 };
 
 /**
- * Check Redis connection
+ * Check Redis connection status
+ * Returns true if Redis is connected and responsive, false otherwise
  */
 export const checkRedisConnection = async (): Promise<boolean> => {
   if (!config.redis.enabled) {
@@ -89,22 +90,6 @@ export const checkRedisConnection = async (): Promise<boolean> => {
   } catch (error) {
     console.error('Redis connection check failed:', error);
     return false;
-  }
-};
-
-/**
- * Close Redis connection gracefully
- */
-export const closeRedisConnection = async (): Promise<void> => {
-  if (redisClient) {
-    try {
-      await redisClient.quit();
-      console.log('Redis: Connection closed');
-    } catch (error) {
-      console.error('Redis: Error closing connection:', error);
-    } finally {
-      redisClient = null;
-    }
   }
 };
 

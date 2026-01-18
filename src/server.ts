@@ -28,7 +28,7 @@ if (config.redis.enabled) {
   console.log('Redis: DISABLED (set REDIS_ENABLED=true to enable)');
 }
 
-// Start server regardless of database connection status
+// Start server regardless of connection status
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
