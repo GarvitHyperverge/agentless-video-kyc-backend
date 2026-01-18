@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { verifyJwt, JwtPayload } from '../utils/jwt.util';
 import { getVerificationSessionByUid, updateVerificationSessionStatus } from '../repositories/verificationSession.repository';
+import { validateSession } from '../services/session.service';
 import { ApiResponseDto } from '../dtos/apiResponse.dto';
 import { config } from '../config';
 
@@ -30,7 +31,7 @@ const extractToken = (req: Request): string | null => {
 };
 
 /**
- * Middleware to authenticate requests using JWT from cookies
+ * Middleware to authenticate requests using JWT from cookies with Redis-backed session management
  * 
  * Expected:
  * - Cookie: sessionToken=<jwt_token> (cookie name from config)
@@ -39,12 +40,14 @@ const extractToken = (req: Request): string | null => {
  * 1. Token is present in cookie
  * 2. Token signature is valid
  * 3. Token is not expired
- * 4. Session exists in database
- * 5. Session is not completed
+ * 4. JTI exists in Redis (session is active - not revoked)
+ * 5. Session exists in database
+ * 6. Session is not completed
  * 
  * Attaches to request:
  * - req.sessionId: The session ID from JWT
  * - req.session: The verification session object
+ * - req.jti: The JWT ID (JTI) for session revocation
  */
 export const jwtAuthMiddleware = async (
   req: Request,
@@ -105,6 +108,34 @@ export const jwtAuthMiddleware = async (
       return;
     }
 
+    // Validate JTI exists in payload (required for Redis session management)
+    if (!payload.jti) {
+      sendAuthError(res, 'Invalid JWT token - missing session identifier');
+      return;
+    }
+
+    // Check if session is active in Redis (JTI-based session validation)
+    // This allows instant session revocation via Redis deletion
+    try {
+      const sessionIdFromRedis = await validateSession(payload.jti);
+      
+      if (!sessionIdFromRedis) {
+        // Session not found in Redis - token revoked or expired
+        sendAuthError(res, 'Session not found or has been revoked');
+        return;
+      }
+
+      // Verify session ID matches between JWT and Redis
+      if (sessionIdFromRedis !== payload.sessionId) {
+        sendAuthError(res, 'Session identifier mismatch');
+        return;
+      }
+    } catch (redisError: any) {
+      // Redis is required for session validation
+      sendAuthError(res, redisError.message || 'Session validation failed', 503);
+      return;
+    }
+
     // Validate session exists in database
     const session = await getVerificationSessionByUid(payload.sessionId);
 
@@ -122,6 +153,7 @@ export const jwtAuthMiddleware = async (
     // Attach session info to request for use in controllers
     (req as any).sessionId = payload.sessionId;
     (req as any).session = session;
+    (req as any).jti = payload.jti; // Attach JTI for logout/session revocation
 
     // Authentication successful
     next();

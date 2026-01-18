@@ -8,30 +8,80 @@ import { config } from '../config';
 export interface JwtPayload {
   sessionId: string;
   timestamp: number;
+  jti?: string; // JWT ID - session identifier for Redis session management
 }
 
 /**
- * Generate JWT token with sessionId and timestamp
+ * Generate JWT token with sessionId, timestamp, and JTI (JWT ID)
  * @param sessionId - Session unique identifier
+ * @param jti - Optional JWT ID (JTI). If not provided, a new UUID will be generated.
+ *              This JTI is used for Redis-backed session revocation.
  * @param timestamp - Optional timestamp (in milliseconds). If not provided, uses current time.
  *                    Use this to ensure JWT timestamp matches database created_at timestamp.
- * @returns JWT token string
+ * @returns JWT token string and JTI
  */
-export const generateJwt = (sessionId: string, timestamp?: number): string => {
+export const generateJwt = (sessionId: string, jti?: string, timestamp?: number): { token: string; jti: string } => {
+  const jwtId = jti || crypto.randomBytes(16).toString('hex');
+  
   const payload: JwtPayload = {
     sessionId,
     timestamp: timestamp || Date.now(),
+    jti: jwtId,
   };
 
   const token = jwt.sign(
     payload,
     config.jwtSecret,
     {
-      expiresIn: config.jwtExpiration,
+      expiresIn: config.jwtExpiration || '15m',
+      jwtid: jwtId, // Set JTI in JWT standard claims
     } as jwt.SignOptions
   );
 
-  return token;
+  return { token, jti: jwtId };
+};
+
+/**
+ * Parse JWT expiration string to seconds
+ * Examples: '15m' -> 900, '1h' -> 3600, '7d' -> 604800
+ * @param expiration - JWT expiration string (e.g., '15m', '1h', '7d')
+ * @returns TTL in seconds
+ */
+const parseJwtExpirationToSeconds = (expiration: string | undefined): number => {
+  if (!expiration) {
+    // Default to 15 minutes if not provided
+    return 15 * 60;
+  }
+
+  const match = expiration.match(/^(\d+)([smhd])$/i);
+  if (!match || !match[1] || !match[2]) {
+    // Default to 15 minutes if invalid format
+    return 15 * 60;
+  }
+
+  const value = parseInt(match[1], 10);
+  const unit = match[2].toLowerCase();
+
+  switch (unit) {
+    case 's':
+      return value;
+    case 'm':
+      return value * 60;
+    case 'h':
+      return value * 60 * 60;
+    case 'd':
+      return value * 24 * 60 * 60;
+    default:
+      return 15 * 60; // Default to 15 minutes
+  }
+};
+
+/**
+ * Get JWT expiration TTL in seconds
+ * @returns TTL in seconds based on config.jwtExpiration
+ */
+export const getJwtExpirationSeconds = (): number => {
+  return parseJwtExpirationToSeconds(config.jwtExpiration);
 };
 
 /**

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createVerificationSession, markVerificationSessionCompletedController, updateAuditStatus, activateVerificationSession } from '../controllers/verificationSession.controller';
+import { createVerificationSession, markVerificationSessionCompletedController, updateAuditStatus, activateVerificationSession, logoutSession } from '../controllers/verificationSession.controller';
 import { jwtAuthMiddleware } from '../middleware/jwtAuth.middleware';
 import { hmacAuthMiddleware } from '../middleware/hmacAuth.middleware';
 
@@ -10,6 +10,9 @@ router.post('/', hmacAuthMiddleware, createVerificationSession);
 
 // Activate verification session using temp token (public endpoint)
 router.post('/activate', activateVerificationSession);
+
+// Logout - Revoke session from Redis (requires JWT)
+router.post('/logout', jwtAuthMiddleware, logoutSession);
 
 // Mark verification session as completed (requires JWT)
 router.patch('/complete', jwtAuthMiddleware, markVerificationSessionCompletedController);

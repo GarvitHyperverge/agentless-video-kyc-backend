@@ -48,3 +48,8 @@ export interface ActivateSessionRequestDto {
 export interface ActivateSessionResponseDto {
   session_id: string;
 }
+
+export interface LogoutResponseDto {
+  message: string;
+  session_id: string;
+}

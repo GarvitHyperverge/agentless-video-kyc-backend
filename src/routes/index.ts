@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import healthRoutes from './health.routes';
+import authRoutes from './auth.routes';
 import verificationSessionRoutes from './verificationSession.routes';
 import sessionMetadataRoutes from './sessionMetadata.routes';
 import panCardRoutes from './panCard.routes';
@@ -11,6 +12,7 @@ import auditSessionRoutes from './auditSession.routes';
 const router = Router();
 
 router.use('/health', healthRoutes);
+router.use('/auth', authRoutes);
 router.use('/verification-sessions', verificationSessionRoutes);
 router.use('/session-metadata', sessionMetadataRoutes);
 router.use('/pan-card', panCardRoutes);

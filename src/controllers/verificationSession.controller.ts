@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { createVerificationSession as createVerificationSessionService, markVerificationSessionCompleted, updateVerificationSessionAuditStatus as updateVerificationSessionAuditStatusService, activateVerificationSession as activateVerificationSessionService } from '../services/verificationSession.service';
+import { revokeSession } from '../services/session.service';
 import { 
   CreateVerificationSessionRequestDto, 
   CreateVerificationSessionResponseDto,
@@ -7,7 +8,8 @@ import {
   UpdateAuditStatusRequestDto,
   UpdateAuditStatusResponseDto,
   ActivateSessionRequestDto,
-  ActivateSessionResponseDto
+  ActivateSessionResponseDto,
+  LogoutResponseDto
 } from '../dtos/verificationSession.dto';
 import { ApiResponseDto } from '../dtos/apiResponse.dto';
 import { ApiClient } from '../types';
@@ -146,6 +148,57 @@ export const markVerificationSessionCompletedController = async (req: Request, r
       success: false,
       error: error.message || 'Failed to update verification session status',
     };
+    res.status(400).json(response);
+  }
+};
+
+/**
+ * Logout - Revoke session from Redis
+ * POST /api/verification-sessions/logout
+ * This revokes the session instantly by deleting it from Redis
+ * JWT still exists but is useless after revocation
+ */
+export const logoutSession = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Get JTI from JWT middleware (already validated)
+    const jti = (req as any).jti as string;
+    const sessionId = (req as any).sessionId as string;
+
+    if (!jti) {
+      const response: ApiResponseDto<never> = {
+        success: false,
+        error: 'Session identifier not found',
+      };
+      res.status(400).json(response);
+      return;
+    }
+
+    // Revoke session from Redis (delete JTI)
+    await revokeSession(jti);
+    
+    // Clear cookie
+    res.clearCookie(config.cookie.sessionTokenName, {
+      httpOnly: config.cookie.httpOnly,
+      secure: config.cookie.secure,
+      sameSite: config.cookie.sameSite,
+      path: config.cookie.path,
+    });
+    
+    const response: ApiResponseDto<LogoutResponseDto> = {
+      success: true,
+      data: {
+        message: 'Session revoked successfully',
+        session_id: sessionId,
+      },
+    };
+    
+    res.status(200).json(response);
+  } catch (error: any) {
+    const response: ApiResponseDto<never> = {
+      success: false,
+      error: error.message || 'Failed to revoke session',
+    };
+    console.log('[Verification Session] Error revoking session:', error);
     res.status(400).json(response);
   }
 };

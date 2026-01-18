@@ -10,8 +10,9 @@ import {
   getVerificationSessionByUid
 } from '../repositories/verificationSession.repository';
 import { createBusinessPartnerPanData } from '../repositories/businessPartnerPanData.repository';
-import { generateJwt, generateTempToken, verifyTempToken } from '../utils/jwt.util';
+import { generateJwt, generateTempToken, verifyTempToken, getJwtExpirationSeconds } from '../utils/jwt.util';
 import { storeTempToken, validateAndConsumeTempToken } from './tempToken.service';
+import { storeSession } from './session.service';
 
 /**
  * Create a new verification session with PAN data
@@ -145,9 +146,13 @@ export const activateVerificationSession = async (tempToken: string): Promise<Ve
     throw new Error(`Session is not in pending status. Current status: ${session.status}`);
   }
 
-  // Generate regular JWT token for session (to be set as cookie)
+  // Generate regular JWT token for session (to be set as cookie) with JTI
   const sessionTimestamp = session.created_at.getTime();
-  const token = generateJwt(session.session_uid, sessionTimestamp);
+  const { token, jti } = generateJwt(session.session_uid, undefined, sessionTimestamp);
+  
+  // Store session in Redis with JTI for session revocation
+  const ttlSeconds = getJwtExpirationSeconds();
+  await storeSession(jti, session.session_uid, ttlSeconds);
 
   return {
     ...session,
