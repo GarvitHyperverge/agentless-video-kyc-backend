@@ -34,7 +34,7 @@ export const config = {
     httpOnly: true, // Prevents JavaScript access (XSS protection)
     secure: false, // false in development
     sameSite: 'lax' as const, // CSRF protection
-    path: '/api/audit', // Only sent to /api/audit/* paths
+    path: '/api', 
     maxAge: 2 * 60 * 1000, // 2 minutes in milliseconds (matches access token expiration)
   },
   auditRefreshCookie: {
@@ -42,12 +42,10 @@ export const config = {
     httpOnly: true, // Prevents JavaScript access (XSS protection)
     secure: false, // false in development
     sameSite: 'lax' as const, // CSRF protection
-    path: '/api/audit', // Only sent to /api/audit/* paths
+    path: '/api', 
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds (matches refresh token expiration)
   },
   vosk: {
-    // In Docker: use 'vosk-websocket-server' (service name)
-    // Outside Docker: set VOSK_HOST=127.0.0.1 or localhost in .env
     host: process.env.VOSK_HOST || 'localhost',
     port: parseInt(process.env.VOSK_PORT || '2700', 10),
     protocol: process.env.VOSK_PROTOCOL || 'ws',

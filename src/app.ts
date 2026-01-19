@@ -5,15 +5,9 @@ import routes from './routes';
 
 const app = express();
 
-// Enable CORS for all origins with credentials support for cookies
-// Note: When credentials: true, origin cannot be '*', so we use a function to allow all origins
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow all origins (for development)
-    // In production, you should specify exact origins
-    callback(null, true);
-  },
-  credentials: true, // Allow cookies to be sent
+  origin: 'http://localhost:5173', 
+  credentials: true,
 }));
 
 // Middleware to parse cookies
