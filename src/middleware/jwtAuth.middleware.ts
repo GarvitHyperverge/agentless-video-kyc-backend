@@ -98,7 +98,6 @@ export const jwtAuthMiddleware = async (
       } catch (updateError) {
         console.error('Error updating session status on token expiration:', updateError);
       }
-      
       sendAuthError(res, 'JWT token has expired. Session marked as incomplete.');
       return;
     }
@@ -122,12 +121,6 @@ export const jwtAuthMiddleware = async (
       if (!sessionIdFromRedis) {
         // Session not found in Redis - token revoked or expired
         sendAuthError(res, 'Session not found or has been revoked');
-        return;
-      }
-
-      // Verify session ID matches between JWT and Redis
-      if (sessionIdFromRedis !== payload.sessionId) {
-        sendAuthError(res, 'Session identifier mismatch');
         return;
       }
     } catch (redisError: any) {

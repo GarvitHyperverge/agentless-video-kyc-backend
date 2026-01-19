@@ -32,7 +32,7 @@ export const getRedisClient = (): RedisClientType | null => {
       database: config.redis.database || 0,
     };
 
-    // Only include password if it's provided (not empty string)
+    // Only include password if it's provided 
     const clientOptions = config.redis.password
       ? { ...baseOptions, password: config.redis.password }
       : baseOptions;

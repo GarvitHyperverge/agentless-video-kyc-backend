@@ -114,7 +114,6 @@ export const updateVerificationSessionAuditStatus = async (
 /**
  * Activate verification session using temp token
  * Validates temp token (one-time use via Redis), checks session validity, and returns session with JWT token
- * Redis is REQUIRED for this operation
  */
 export const activateVerificationSession = async (tempToken: string): Promise<VerificationSession & { token: string }> => {
   // Verify temp token (JWT validation)

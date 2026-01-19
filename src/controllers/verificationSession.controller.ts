@@ -78,7 +78,7 @@ export const activateVerificationSession = async (req: Request, res: Response): 
       return;
     }
 
-    // Validate temp token and get session (Redis is required)
+    // Validate temp token and get session 
     const sessionWithToken = await activateVerificationSessionService(dto.temp_token);
     
     // Set JWT as HTTP-only cookie using configuration
