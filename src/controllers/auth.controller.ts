@@ -74,7 +74,6 @@ export const checkAuditAuth = async (req: Request, res: Response): Promise<void>
     res.status(200).json(response);
   } catch (error: any) {
     // If audit JWT middleware rejected, this won't be reached
-    // But handle just in case
     const response: ApiResponseDto<{
       authenticated: boolean;
     }> = {

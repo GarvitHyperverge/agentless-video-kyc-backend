@@ -3,6 +3,7 @@ import app from './app';
 import { config } from './config';
 import { checkDatabaseConnection } from './config/supabase';
 import { checkRedisConnection } from './config/redis';
+import WebSocket from 'ws';
 
 const PORT = config.port;
 
@@ -27,6 +28,39 @@ if (config.redis.enabled) {
 } else {
   console.log('Redis: DISABLED (set REDIS_ENABLED=true to enable)');
 }
+
+// Check Vosk connection
+const checkVoskConnection = async (): Promise<boolean> => {
+  return new Promise((resolve) => {
+    const { host, port, protocol } = config.vosk;
+    const wsUrl = `${protocol}://${host}:${port}`;
+    
+    const ws = new WebSocket(wsUrl);
+    const timeout = setTimeout(() => {
+      ws.close();
+      resolve(false);
+    }, 3000);
+
+    ws.on('open', () => {
+      clearTimeout(timeout);
+      ws.close();
+      resolve(true);
+    });
+
+    ws.on('error', () => {
+      clearTimeout(timeout);
+      resolve(false);
+    });
+  });
+};
+
+checkVoskConnection().then((isConnected) => {
+  if (isConnected) {
+    console.log('Vosk connection: OK');
+  } else {
+    console.warn('Vosk connection: FAILED - Speech-to-text features will not work');
+  }
+});
 
 // Start server regardless of connection status
 app.listen(PORT, () => {

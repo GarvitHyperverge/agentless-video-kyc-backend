@@ -48,7 +48,7 @@ export const config = {
   vosk: {
     // In Docker: use 'vosk-websocket-server' (service name)
     // Outside Docker: set VOSK_HOST=127.0.0.1 or localhost in .env
-    host: process.env.VOSK_HOST || 'vosk-websocket-server',
+    host: process.env.VOSK_HOST || 'localhost',
     port: parseInt(process.env.VOSK_PORT || '2700', 10),
     protocol: process.env.VOSK_PROTOCOL || 'ws',
   },
@@ -58,7 +58,7 @@ export const config = {
   },
   redis: {
     enabled: process.env.REDIS_ENABLED === 'true',
-    host: process.env.REDIS_HOST || 'localhost',
+    host: process.env.REDIS_HOST || 'redis',
     port: parseInt(process.env.REDIS_PORT || '6379', 10),
     password: process.env.REDIS_PASSWORD || '',
     database: parseInt(process.env.REDIS_DATABASE || '0', 10),

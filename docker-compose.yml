@@ -17,8 +17,6 @@ services:
     volumes:
       - redis-data:/data
     restart: unless-stopped
-    networks:
-      - app-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -60,8 +58,8 @@ services:
       # HMAC
       - HMAC_TIMESTAMP_TOLERANCE=${HMAC_TIMESTAMP_TOLERANCE}
       
-      # Vosk 
-      - VOSK_HOST=${VOSK_HOST:-vosk-websocket-server}
+      # Vosk (use host.docker.internal to reach host machine from container)
+      - VOSK_HOST=${VOSK_HOST:-host.docker.internal}
       - VOSK_PORT=${VOSK_PORT:-2700}
       - VOSK_PROTOCOL=${VOSK_PROTOCOL:-ws}
       
@@ -87,14 +85,7 @@ services:
       timeout: 3s
       retries: 3
       start_period: 10s
-    networks:
-      - app-network
 
 volumes:
   redis-data:
     driver: local
-
-networks:
-  app-network:
-    name: kyc-network
-    driver: bridge
