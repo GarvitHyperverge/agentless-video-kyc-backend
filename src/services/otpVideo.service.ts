@@ -59,7 +59,7 @@ export async function uploadOtpVideo(
     console.error('Error uploading OTP video to S3:', s3Error);
     throw new Error('Failed to upload OTP video to S3');
   }
-
+  console.log("Upload OTP video process completed, proceeding to OTP verification");
   // Step 4: Ask ChatGPT if transcript OTP matches the provided OTP 
   let otpMatchResult;
   try {
