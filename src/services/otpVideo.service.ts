@@ -51,7 +51,16 @@ export async function uploadOtpVideo(
     throw new Error('Failed to store OTP in database');
   }
 
-  // Step 3: Ask ChatGPT if transcript OTP matches the provided OTP 
+  // Step 3: Upload video to S3 
+  try {
+    await uploadBuffersToS3([{ key: videoStorageKey, buffer: dto.video.buffer, contentType: 'video/webm' }]);
+    console.log("OTP video uploaded to S3 successfully");
+  } catch (s3Error: any) {
+    console.error('Error uploading OTP video to S3:', s3Error);
+    throw new Error('Failed to upload OTP video to S3');
+  }
+
+  // Step 4: Ask ChatGPT if transcript OTP matches the provided OTP 
   let otpMatchResult;
   try {
     otpMatchResult = await confirmOtpMatchWithChatGPT({
@@ -72,14 +81,6 @@ export async function uploadOtpVideo(
   } catch (otpMatchError: any) {
     console.error('[OTP Match] Failed to verify:',otpMatchError);
     throw new Error('Failed to verify OTP');
-  }
-
-  // Step 4: Upload video to S3 
-  try {
-    await uploadBuffersToS3([{ key: videoStorageKey, buffer: dto.video.buffer, contentType: 'video/webm' }]);
-  } catch (s3Error: any) {
-    console.error('Error uploading OTP video to S3:', s3Error);
-    throw new Error('Failed to upload OTP video to S3');
   }
 
   // Step 5: Return success with S3 path
