@@ -22,7 +22,6 @@ const sendAuthError = (res: Response, statusCode: number = 401): void => {
  * Cookie name is configured in config.auditCookie.tokenName
  */
 const extractToken = (req: Request): string | null => {
-  console.log("Cookies - ",req.cookies);
   if (req.cookies && req.cookies[config.auditCookie.tokenName]) {
     return req.cookies[config.auditCookie.tokenName];
   }
