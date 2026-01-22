@@ -46,7 +46,7 @@ export const transcribeAudio = async (audioBuffer: Buffer): Promise<VoskTranscri
       console.log('[Vosk] Message:', msg);
       try {
         const message = JSON.parse(msg);
-        if (message.text) {
+        if ('text' in message) {
           text = message.text;
           console.log('[Vosk] Received final result:', text);
           // Got final text - close connection after a brief delay
@@ -54,7 +54,7 @@ export const transcribeAudio = async (audioBuffer: Buffer): Promise<VoskTranscri
             if (ws.readyState === WebSocket.OPEN) {
               ws.close();
             }
-          }, 100);
+          }, 1000);
         }
       } catch (error) {
         console.error('[Vosk] Error parsing message:', error);
@@ -66,12 +66,13 @@ export const transcribeAudio = async (audioBuffer: Buffer): Promise<VoskTranscri
     });
 
     ws.on('close', (code: number, reason: Buffer) => {
-      if (text) {
+      if (text && text.trim()) {
         console.log('[Vosk] Transcription completed successfully');
         resolve({ text });
       } else {
         console.log(`[Vosk] Closed: ${code} ${reason ? reason.toString() : ''}`);
-        reject(new Error(`Connection closed with code ${code}`));
+        console.log('[Vosk] Empty text received, returning "Can\'t analyse"');
+        resolve({ text: "Can't analyse" });
       }
     });
   });

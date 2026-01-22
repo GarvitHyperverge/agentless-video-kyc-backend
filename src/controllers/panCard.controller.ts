@@ -52,17 +52,6 @@ export const uploadPanCardImages = async (req: Request, res: Response): Promise<
 
     const result = await uploadPanCardImagesService(dto);
 
-    // Only return success: true if verificationStatus is true
-    if (!result.verificationStatus) {
-      const response: ApiResponseDto<PanCardUploadResponseDto> = {
-        success: false,
-        error: 'PAN card verification failed: extracted data does not match business partner data',
-        data: result,
-      };
-      res.status(200).json(response);
-      return;
-    }
-
     const response: ApiResponseDto<PanCardUploadResponseDto> = {
       success: true,
       data: result,

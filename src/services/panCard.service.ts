@@ -82,7 +82,7 @@ export const uploadPanCardImages = async (
       pan_number: businessPartnerData.pan_number,
     }
   );
-
+  console.log('comparisonResult', comparisonResult);
   // Step 6: Return success immediately with verification results
   return {
     sessionId: dto.session_id,
